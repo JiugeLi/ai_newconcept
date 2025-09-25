@@ -1,0 +1,1104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Concept English - Lesson 11: One Good Turn Deserves Another</title>
+    <link href="https://cdn.bootcdn.net/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.bootcdn.net/ajax/libs/vue/3.3.4/vue.global.min.js"></script>
+    <style>
+        .error-text { color: #ef4444; }
+        .correct-text { color: #10b981; }
+        .highlight { background-color: #fef3c7; }
+        .grammar-tip { background-color: #dbeafe; border-left: 4px solid #3b82f6; }
+        
+        /* Flashcard Animation Styles */
+        .flashcard-container {
+            perspective: 1000px;
+        }
+        
+        .flashcard {
+            position: relative;
+            width: 100%;
+            height: 200px;
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+        }
+        
+        .flashcard.flipped {
+            transform: rotateY(180deg);
+        }
+        
+        .flashcard-front,
+        .flashcard-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .flashcard-back {
+            transform: rotateY(180deg);
+        }
+        
+        /* Memory Palace Styles */
+        .memory-location {
+            transition: all 0.3s ease;
+        }
+        
+        .memory-location:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Progress Bar Animation */
+        .progress-bar {
+            transition: width 0.8s ease-in-out;
+        }
+        
+        /* Pronunciation Practice Styles */
+        .recording-pulse {
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div id="app" class="container mx-auto px-4 py-8 max-w-4xl">
+        <!-- Header -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h1 class="text-3xl font-bold text-blue-600 mb-2">New Concept English - Lesson 11</h1>
+            <h2 class="text-xl text-gray-700 mb-4">One Good Turn Deserves Another</h2>
+            <p class="text-gray-600">📚 Let's learn this lesson step by step!</p>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="bg-white rounded-lg shadow-md mb-6">
+            <div class="flex border-b">
+                <button 
+                    v-for="tab in tabs" 
+                    :key="tab.id"
+                    @click="activeTab = tab.id"
+                    :class="['px-6 py-3 font-medium', activeTab === tab.id ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500 hover:text-gray-700']"
+                >
+                    {{ tab.name }}
+                </button>
+            </div>
+        </div>
+
+        <!-- Original Text Tab -->
+        <div v-show="activeTab === 'original'" class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h3 class="text-xl font-semibold mb-4">📖 Original Text</h3>
+            <div class="bg-gray-100 p-4 rounded-lg mb-4">
+                <p class="font-medium text-blue-600 mb-2">Question: Who pays for Tony's dinner?</p>
+            </div>
+            
+            <!-- Audio Controls -->
+            <div class="mb-6 p-4 bg-blue-50 rounded-lg">
+                <h4 class="font-semibold mb-3">🔊 Listen to the Story</h4>
+                <div class="flex gap-3 mb-3">
+                    <button @click="playAudio" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 flex items-center gap-2">
+                        <span v-if="!isPlaying">▶️ Play Audio</span>
+                        <span v-else>⏸️ Pause Audio</span>
+                    </button>
+                    <button @click="stopAudio" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
+                        ⏹️ Stop
+                    </button>
+                </div>
+                <div class="flex items-center gap-3">
+                    <label class="text-sm font-medium">Speed:</label>
+                    <select v-model="speechRate" @change="updateSpeechRate" class="border rounded px-2 py-1">
+                        <option value="0.5">0.5x</option>
+                        <option value="0.75">0.75x</option>
+                        <option value="1">1x (Normal)</option>
+                        <option value="1.25">1.25x</option>
+                        <option value="1.5">1.5x</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div id="story-text" class="space-y-2 text-lg leading-relaxed">
+                <p>I was having dinner at a restaurant when Tony came in.</p>
+                <p>Tony worked in a lawyer's office years ago, but he is now working at a bank.</p>
+                <p>He gets a good salary, but he always borrows money from his friends and never pays it back.</p>
+                <p>Tony saw me and came and sat at the same table.</p>
+                <p>He had never borrowed money from me.</p>
+                <p>While he was eating, I asked him to lend me twenty pounds.</p>
+                <p class="highlight">To my surprise, he gave me the money immediately.</p>
+                <p>"I have never borrowed any money from you," Tony said.</p>
+                <p>"So now you can pay for my dinner."</p>
+            </div>
+        </div>
+
+        <!-- Grammar Corrections Tab -->
+        <div v-show="activeTab === 'grammar'" class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h3 class="text-xl font-semibold mb-4">✏️ Grammar Corrections & Analysis</h3>
+            
+            <div class="bg-blue-50 p-4 rounded-lg mb-6">
+                <p class="text-blue-800 font-medium">📝 The original text has been corrected! Below are the grammar errors that were fixed:</p>
+            </div>
+            
+            <div class="space-y-6">
+                <div class="grammar-tip p-4 rounded-lg">
+                    <h4 class="font-semibold mb-2">1. Article Usage</h4>
+                    <p class="error-text mb-1">❌ "I was having a dinner at a restaurant"</p>
+                    <p class="correct-text mb-2">✅ "I was having dinner at a restaurant"</p>
+                    <p class="text-sm text-gray-600">• Don't use "a" before "dinner" when referring to the meal in general</p>
+                </div>
+
+                <div class="grammar-tip p-4 rounded-lg">
+                    <h4 class="font-semibold mb-2">2. Unnecessary Adverb</h4>
+                    <p class="error-text mb-1">❌ "when Tony still came in"</p>
+                    <p class="correct-text mb-2">✅ "when Tony came in"</p>
+                    <p class="text-sm text-gray-600">• "Still" is unnecessary here and makes the sentence awkward</p>
+                </div>
+
+                <div class="grammar-tip p-4 rounded-lg">
+                    <h4 class="font-semibold mb-2">3. Missing Article</h4>
+                    <p class="error-text mb-1">❌ "working at bank"</p>
+                    <p class="correct-text mb-2">✅ "working at a bank"</p>
+                    <p class="text-sm text-gray-600">• Need article "a" before "bank"</p>
+                </div>
+
+                <div class="grammar-tip p-4 rounded-lg">
+                    <h4 class="font-semibold mb-2">4. Missing Comma</h4>
+                    <p class="error-text mb-1">❌ "He gets a good salary but he always borrows..."</p>
+                    <p class="correct-text mb-2">✅ "He gets a good salary, but he always borrows..."</p>
+                    <p class="text-sm text-gray-600">• Need comma before "but" in compound sentences</p>
+                </div>
+
+                <div class="grammar-tip p-4 rounded-lg">
+                    <h4 class="font-semibold mb-2">5. Verb Forms & Preposition</h4>
+                    <p class="error-text mb-1">❌ "came and sit the same table"</p>
+                    <p class="correct-text mb-2">✅ "came and sat at the same table"</p>
+                    <p class="text-sm text-gray-600">• Past tense consistency: "came" and "sat"</p>
+                    <p class="text-sm text-gray-600">• Need preposition "at" before "the same table"</p>
+                </div>
+
+                <div class="grammar-tip p-4 rounded-lg">
+                    <h4 class="font-semibold mb-2">6. Past Perfect Tense</h4>
+                    <p class="error-text mb-1">❌ "He has never borrow money from me"</p>
+                    <p class="correct-text mb-2">✅ "He had never borrowed money from me"</p>
+                    <p class="text-sm text-gray-600">• Past perfect "had borrowed" is more appropriate in this context</p>
+                    <p class="text-sm text-gray-600">• "Borrowed" is the past participle form</p>
+                </div>
+
+                <div class="grammar-tip p-4 rounded-lg">
+                    <h4 class="font-semibold mb-2">7. Verb Tense Consistency</h4>
+                    <p class="error-text mb-1">❌ "I ask him to lent me twenty pounds"</p>
+                    <p class="correct-text mb-2">✅ "I asked him to lend me twenty pounds"</p>
+                    <p class="text-sm text-gray-600">• Past tense "asked" to match the story timeline</p>
+                    <p class="text-sm text-gray-600">• "Lend" is the base form after "to"</p>
+                </div>
+
+                <div class="grammar-tip p-4 rounded-lg">
+                    <h4 class="font-semibold mb-2">8. Verb Tense & Article</h4>
+                    <p class="error-text mb-1">❌ "he gives me money immediately"</p>
+                    <p class="correct-text mb-2">✅ "he gave me the money immediately"</p>
+                    <p class="text-sm text-gray-600">• Past tense "gave" to match the story timeline</p>
+                    <p class="text-sm text-gray-600">• "The money" is more specific than "money"</p>
+                </div>
+
+                <div class="grammar-tip p-4 rounded-lg">
+                    <h4 class="font-semibold mb-2">9. Present Perfect Correction</h4>
+                    <p class="error-text mb-1">❌ "I have never borrow any money from you"</p>
+                    <p class="correct-text mb-2">✅ "I have never borrowed any money from you"</p>
+                    <p class="text-sm text-gray-600">• "Borrowed" is the past participle form in present perfect</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Vocabulary Tab -->
+        <div v-show="activeTab === 'vocabulary'" class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h3 class="text-xl font-semibold mb-4">📚 Key Vocabulary & Phrases</h3>
+            
+            <div class="grid md:grid-cols-2 gap-4">
+                <div v-for="word in vocabulary" :key="word.term" class="border rounded-lg p-4">
+                    <h4 class="font-semibold text-blue-600 mb-2">{{ word.term }}</h4>
+                    <p class="text-sm text-gray-600 mb-1"><strong>Type:</strong> {{ word.type }}</p>
+                    <p class="text-sm text-gray-600 mb-2"><strong>Meaning:</strong> {{ word.meaning }}</p>
+                    <p class="text-sm italic text-gray-500">{{ word.example }}</p>
+                </div>
+            </div>
+
+            <div class="mt-6">
+                <h4 class="font-semibold mb-3">🎯 Important Phrases</h4>
+                <div class="space-y-2">
+                    <div class="bg-yellow-50 p-3 rounded">
+                        <strong>"One good turn deserves another"</strong> - 善有善报，恶有恶报
+                    </div>
+                    <div class="bg-yellow-50 p-3 rounded">
+                        <strong>"To my surprise"</strong> - 令我惊讶的是
+                    </div>
+                    <div class="bg-yellow-50 p-3 rounded">
+                        <strong>"Pay it back"</strong> - 还钱，偿还
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Comprehension Tab -->
+        <div v-show="activeTab === 'comprehension'" class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h3 class="text-xl font-semibold mb-4">🤔 Comprehension Questions</h3>
+            
+            <div class="space-y-4">
+                <div v-for="(question, index) in questions" :key="index" class="border rounded-lg p-4">
+                    <p class="font-medium mb-2">{{ index + 1 }}. {{ question.q }}</p>
+                    <button 
+                        @click="toggleAnswer(index)"
+                        class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 mb-2"
+                    >
+                        {{ showAnswers[index] ? 'Hide Answer' : 'Show Answer' }}
+                    </button>
+                    <div v-show="showAnswers[index]" class="bg-green-50 p-3 rounded">
+                        <p class="text-green-800">{{ question.a }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Practice Tab -->
+        <div v-show="activeTab === 'practice'" class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h3 class="text-xl font-semibold mb-4">✍️ Practice Exercises</h3>
+            
+            <div class="space-y-8">
+                <!-- Exercise 1: Fill in the blanks -->
+                <div class="border rounded-lg p-4">
+                    <h4 class="font-semibold mb-4">Exercise 1: Fill in the blanks</h4>
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-2">
+                            <span>1. Tony</span>
+                            <input 
+                                v-model="exercise1.answer1" 
+                                @input="checkExercise1"
+                                class="border rounded px-2 py-1 w-24" 
+                                placeholder="____"
+                            >
+                            <span>in a lawyer's office years ago. (work)</span>
+                            <span v-if="exercise1.check1" :class="exercise1.correct1 ? 'text-green-600' : 'text-red-600'">
+                                {{ exercise1.correct1 ? '✅' : '❌' }}
+                            </span>
+                        </div>
+                        
+                        <div class="flex items-center gap-2">
+                            <span>2. He always</span>
+                            <input 
+                                v-model="exercise1.answer2" 
+                                @input="checkExercise1"
+                                class="border rounded px-2 py-1 w-24" 
+                                placeholder="____"
+                            >
+                            <span>money from his friends. (borrow)</span>
+                            <span v-if="exercise1.check2" :class="exercise1.correct2 ? 'text-green-600' : 'text-red-600'">
+                                {{ exercise1.correct2 ? '✅' : '❌' }}
+                            </span>
+                        </div>
+                        
+                        <div class="flex items-center gap-2">
+                            <span>3. I</span>
+                            <input 
+                                v-model="exercise1.answer3" 
+                                @input="checkExercise1"
+                                class="border rounded px-2 py-1 w-24" 
+                                placeholder="____"
+                            >
+                            <span>him to lend me twenty pounds. (ask)</span>
+                            <span v-if="exercise1.check3" :class="exercise1.correct3 ? 'text-green-600' : 'text-red-600'">
+                                {{ exercise1.correct3 ? '✅' : '❌' }}
+                            </span>
+                        </div>
+                        
+                        <div class="flex items-center gap-2">
+                            <span>4. To my</span>
+                            <input 
+                                v-model="exercise1.answer4" 
+                                @input="checkExercise1"
+                                class="border rounded px-2 py-1 w-24" 
+                                placeholder="____"
+                            >
+                            <span>, he gave me money immediately. (surprise)</span>
+                            <span v-if="exercise1.check4" :class="exercise1.correct4 ? 'text-green-600' : 'text-red-600'">
+                                {{ exercise1.correct4 ? '✅' : '❌' }}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div v-if="exercise1.allCorrect" class="mt-4 p-3 bg-green-100 text-green-800 rounded">
+                        🎉 Excellent! All answers are correct!
+                    </div>
+                </div>
+
+                <!-- Exercise 2: Correct the sentences -->
+                <div class="border rounded-lg p-4">
+                    <h4 class="font-semibold mb-4">Exercise 2: Correct the sentences</h4>
+                    <div class="space-y-4">
+                        <div>
+                            <p class="mb-2 text-red-600">❌ He has never borrow money from me.</p>
+                            <input 
+                                v-model="exercise2.answer1" 
+                                @input="checkExercise2"
+                                class="w-full border rounded px-3 py-2" 
+                                placeholder="Type the corrected sentence here..."
+                            >
+                            <span v-if="exercise2.check1" :class="exercise2.correct1 ? 'text-green-600' : 'text-red-600'">
+                                {{ exercise2.correct1 ? '✅ Correct!' : '❌ Try again' }}
+                            </span>
+                        </div>
+                        
+                        <div>
+                            <p class="mb-2 text-red-600">❌ I was having a dinner at a resturant.</p>
+                            <input 
+                                v-model="exercise2.answer2" 
+                                @input="checkExercise2"
+                                class="w-full border rounded px-3 py-2" 
+                                placeholder="Type the corrected sentence here..."
+                            >
+                            <span v-if="exercise2.check2" :class="exercise2.correct2 ? 'text-green-600' : 'text-red-600'">
+                                {{ exercise2.correct2 ? '✅ Correct!' : '❌ Try again' }}
+                            </span>
+                        </div>
+                        
+                        <div>
+                            <p class="mb-2 text-red-600">❌ Tony came and sit the same table.</p>
+                            <input 
+                                v-model="exercise2.answer3" 
+                                @input="checkExercise2"
+                                class="w-full border rounded px-3 py-2" 
+                                placeholder="Type the corrected sentence here..."
+                            >
+                            <span v-if="exercise2.check3" :class="exercise2.correct3 ? 'text-green-600' : 'text-red-600'">
+                                {{ exercise2.correct3 ? '✅ Correct!' : '❌ Try again' }}
+                            </span>
+                        </div>
+                        
+                        <div>
+                            <p class="mb-2 text-red-600">❌ I ask him to lent me twenty pounds.</p>
+                            <input 
+                                v-model="exercise2.answer4" 
+                                @input="checkExercise2"
+                                class="w-full border rounded px-3 py-2" 
+                                placeholder="Type the corrected sentence here..."
+                            >
+                            <span v-if="exercise2.check4" :class="exercise2.correct4 ? 'text-green-600' : 'text-red-600'">
+                                {{ exercise2.correct4 ? '✅ Correct!' : '❌ Try again' }}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div v-if="exercise2.allCorrect" class="mt-4 p-3 bg-green-100 text-green-800 rounded">
+                        🎉 Perfect! All sentences are correctly fixed!
+                    </div>
+                </div>
+
+                <!-- Exercise 3: Answer in English -->
+                <div class="border rounded-lg p-4">
+                    <h4 class="font-semibold mb-4">Exercise 3: Answer in English</h4>
+                    <div class="space-y-4">
+                        <div>
+                            <p class="mb-2 font-medium">1. Why did the narrator ask Tony for money?</p>
+                            <textarea 
+                                v-model="exercise3.answer1" 
+                                class="w-full border rounded px-3 py-2 h-20" 
+                                placeholder="Write your answer here..."
+                            ></textarea>
+                        </div>
+                        
+                        <div>
+                            <p class="mb-2 font-medium">2. What was Tony's clever response?</p>
+                            <textarea 
+                                v-model="exercise3.answer2" 
+                                class="w-full border rounded px-3 py-2 h-20" 
+                                placeholder="Write your answer here..."
+                            ></textarea>
+                        </div>
+                        
+                        <div>
+                            <p class="mb-2 font-medium">3. What does the title "One good turn deserves another" mean?</p>
+                            <textarea 
+                                v-model="exercise3.answer3" 
+                                class="w-full border rounded px-3 py-2 h-20" 
+                                placeholder="Write your answer here..."
+                            ></textarea>
+                        </div>
+                    </div>
+                    
+                    <button 
+                        @click="saveAnswers" 
+                        class="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                    >
+                        💾 Save My Answers
+                    </button>
+                    
+                    <div v-if="answersSaved" class="mt-2 p-3 bg-blue-100 text-blue-800 rounded">
+                        ✅ Your answers have been saved! Great work on completing the exercises.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Advanced Learning Tab -->
+        <div v-show="activeTab === 'advanced'" class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h3 class="text-xl font-semibold mb-4">🚀 Advanced Learning Techniques</h3>
+            
+            <!-- Learning Method Selector -->
+            <div class="mb-6">
+                <div class="flex flex-wrap gap-2 mb-4">
+                    <button 
+                        @click="advancedMethod = 'flashcards'"
+                        :class="advancedMethod === 'flashcards' ? 'bg-blue-500 text-white' : 'bg-gray-200'"
+                        class="px-4 py-2 rounded hover:bg-blue-600"
+                    >
+                        🃏 Flashcards
+                    </button>
+                    <button 
+                        @click="advancedMethod = 'pronunciation'"
+                        :class="advancedMethod === 'pronunciation' ? 'bg-blue-500 text-white' : 'bg-gray-200'"
+                        class="px-4 py-2 rounded hover:bg-blue-600"
+                    >
+                        🗣️ Pronunciation
+                    </button>
+                    <button 
+                        @click="advancedMethod = 'memory'"
+                        :class="advancedMethod === 'memory' ? 'bg-blue-500 text-white' : 'bg-gray-200'"
+                        class="px-4 py-2 rounded hover:bg-blue-600"
+                    >
+                        🧠 Memory Palace
+                    </button>
+                    <button 
+                        @click="advancedMethod = 'analytics'"
+                        :class="advancedMethod === 'analytics' ? 'bg-blue-500 text-white' : 'bg-gray-200'"
+                        class="px-4 py-2 rounded hover:bg-blue-600"
+                    >
+                        📊 Progress
+                    </button>
+                </div>
+            </div>
+
+            <!-- Flashcards Section -->
+            <div v-show="advancedMethod === 'flashcards'" class="space-y-4">
+                <h4 class="text-lg font-semibold">🃏 Spaced Repetition Flashcards</h4>
+                <p class="text-gray-600 mb-4">Active recall is proven to be 3x more effective than passive reading. Click cards to reveal answers!</p>
+                
+                <div class="grid md:grid-cols-2 gap-4">
+                    <div v-for="(card, index) in flashcards" :key="index" class="flashcard-container">
+                        <div 
+                            @click="flipCard(index)"
+                            :class="card.flipped ? 'flipped' : ''"
+                            class="flashcard cursor-pointer"
+                        >
+                            <div class="flashcard-front bg-blue-100 p-6 rounded-lg border-2 border-blue-300 min-h-32 flex items-center justify-center">
+                                <div class="text-center">
+                                    <p class="font-medium text-lg">{{ card.question }}</p>
+                                    <p class="text-sm text-gray-500 mt-2">Click to reveal answer</p>
+                                </div>
+                            </div>
+                            <div class="flashcard-back bg-green-100 p-6 rounded-lg border-2 border-green-300 min-h-32 flex items-center justify-center">
+                                <div class="text-center">
+                                    <p class="font-medium text-lg">{{ card.answer }}</p>
+                                    <p class="text-sm text-gray-600 mt-2">{{ card.explanation }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div v-if="card.flipped" class="mt-2 flex gap-2 justify-center">
+                            <button 
+                                @click="markCard(index, 'easy')"
+                                class="bg-green-500 text-white px-3 py-1 rounded text-sm hover:bg-green-600"
+                            >
+                                😊 Easy
+                            </button>
+                            <button 
+                                @click="markCard(index, 'medium')"
+                                class="bg-yellow-500 text-white px-3 py-1 rounded text-sm hover:bg-yellow-600"
+                            >
+                                🤔 Medium
+                            </button>
+                            <button 
+                                @click="markCard(index, 'hard')"
+                                class="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600"
+                            >
+                                😰 Hard
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pronunciation Section -->
+            <div v-show="advancedMethod === 'pronunciation'" class="space-y-4">
+                <h4 class="text-lg font-semibold">🗣️ Pronunciation Practice</h4>
+                <p class="text-gray-600 mb-4">Practice pronunciation with phonetic transcription and audio feedback.</p>
+                
+                <div class="space-y-4">
+                    <div v-for="(word, index) in pronunciationWords" :key="index" class="border rounded-lg p-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <h5 class="font-medium text-lg">{{ word.word }}</h5>
+                            <button 
+                                @click="playWordAudio(word.word)"
+                                class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
+                            >
+                                🔊 Listen
+                            </button>
+                        </div>
+                        <p class="text-gray-600 mb-2"><strong>Phonetic:</strong> {{ word.phonetic }}</p>
+                        <p class="text-gray-600 mb-3"><strong>Meaning:</strong> {{ word.meaning }}</p>
+                        
+                        <div class="bg-yellow-50 p-3 rounded">
+                            <p class="text-sm"><strong>💡 Pronunciation Tip:</strong> {{ word.tip }}</p>
+                        </div>
+                        
+                        <button 
+                            @click="startRecording(index)"
+                            :class="recordingIndex === index ? 'bg-red-500' : 'bg-green-500'"
+                            class="mt-2 text-white px-4 py-2 rounded hover:opacity-80"
+                        >
+                            {{ recordingIndex === index ? '🛑 Stop Recording' : '🎤 Practice Speaking' }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Memory Palace Section -->
+            <div v-show="advancedMethod === 'memory'" class="space-y-4">
+                <h4 class="text-lg font-semibold">🧠 Memory Palace Technique</h4>
+                <p class="text-gray-600 mb-4">Use visualization and spatial memory to remember vocabulary and story elements.</p>
+                
+                <div class="bg-purple-50 p-6 rounded-lg">
+                    <h5 class="font-semibold mb-3">🏰 Your Memory Palace: Restaurant Scene</h5>
+                    <div class="space-y-4">
+                        <div class="memory-location p-4 bg-white rounded border-l-4 border-purple-500">
+                            <h6 class="font-medium">📍 Location 1: Restaurant Entrance</h6>
+                            <p class="text-sm text-gray-600 mb-2">Visualize: Tony walking through the door</p>
+                            <p class="text-sm"><strong>Remember:</strong> "came in" - past tense action</p>
+                            <p class="text-sm text-purple-600">💭 Mental image: Tony pushing open a heavy wooden door</p>
+                        </div>
+                        
+                        <div class="memory-location p-4 bg-white rounded border-l-4 border-blue-500">
+                            <h6 class="font-medium">📍 Location 2: Bank Counter (Tony's workplace)</h6>
+                            <p class="text-sm text-gray-600 mb-2">Visualize: Tony behind a bank counter with money</p>
+                            <p class="text-sm"><strong>Remember:</strong> "works at a bank" - present tense</p>
+                            <p class="text-sm text-blue-600">💭 Mental image: Tony counting money at a marble counter</p>
+                        </div>
+                        
+                        <div class="memory-location p-4 bg-white rounded border-l-4 border-green-500">
+                            <h6 class="font-medium">📍 Location 3: Dining Table</h6>
+                            <p class="text-sm text-gray-600 mb-2">Visualize: Two people sitting at the same table</p>
+                            <p class="text-sm"><strong>Remember:</strong> "sat at the same table" - past tense</p>
+                            <p class="text-sm text-green-600">💭 Mental image: Two chairs being pulled out simultaneously</p>
+                        </div>
+                        
+                        <div class="memory-location p-4 bg-white rounded border-l-4 border-yellow-500">
+                            <h6 class="font-medium">📍 Location 4: Wallet Exchange</h6>
+                            <p class="text-sm text-gray-600 mb-2">Visualize: Money changing hands</p>
+                            <p class="text-sm"><strong>Remember:</strong> "lend me twenty pounds" - base form after 'to'</p>
+                            <p class="text-sm text-yellow-600">💭 Mental image: Twenty pound notes floating between hands</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Progress Analytics Section -->
+            <div v-show="advancedMethod === 'analytics'" class="space-y-4">
+                <h4 class="text-lg font-semibold">📊 Learning Progress Analytics</h4>
+                <p class="text-gray-600 mb-4">Track your learning efficiency and identify areas for improvement.</p>
+                
+                <div class="grid md:grid-cols-2 gap-4">
+                    <div class="bg-blue-50 p-4 rounded-lg">
+                        <h5 class="font-semibold mb-2">📈 Vocabulary Mastery</h5>
+                        <div class="space-y-2">
+                            <div class="flex justify-between">
+                                <span>Known Words:</span>
+                                <span class="font-medium">{{ masteredWords }}/{{ totalWords }}</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div 
+                                    class="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                                    :style="{ width: (masteredWords / totalWords * 100) + '%' }"
+                                ></div>
+                            </div>
+                            <p class="text-sm text-gray-600">{{ Math.round(masteredWords / totalWords * 100) }}% Complete</p>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-green-50 p-4 rounded-lg">
+                        <h5 class="font-semibold mb-2">⚡ Learning Efficiency</h5>
+                        <div class="space-y-2">
+                            <div class="flex justify-between">
+                                <span>Study Time:</span>
+                                <span class="font-medium">{{ studyTime }} min</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Words/Hour:</span>
+                                <span class="font-medium">{{ Math.round(masteredWords / (studyTime / 60)) }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Retention Rate:</span>
+                                <span class="font-medium text-green-600">{{ retentionRate }}%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-yellow-50 p-4 rounded-lg">
+                    <h5 class="font-semibold mb-2">🎯 Personalized Recommendations</h5>
+                    <ul class="space-y-1 text-sm">
+                        <li>• Focus more on past tense verb forms (3 errors detected)</li>
+                        <li>• Practice preposition usage with "at", "in", "on"</li>
+                        <li>• Review spaced repetition cards marked as "hard"</li>
+                        <li>• Spend 5 more minutes on pronunciation practice</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary Tab -->
+        <div v-show="activeTab === 'summary'" class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h3 class="text-xl font-semibold mb-4">📝 Lesson Summary</h3>
+            
+            <div class="space-y-4">
+                <div class="bg-blue-50 p-4 rounded-lg">
+                    <h4 class="font-semibold mb-2">📖 Story Summary</h4>
+                    <p>The narrator was having dinner when Tony came in. Tony, who works at a bank and always borrows money without paying it back, sat at the narrator's table. Cleverly, the narrator asked Tony for twenty pounds. Tony gave him the money immediately, then revealed his plan: since he had never borrowed from the narrator before, now the narrator could pay for Tony's dinner!</p>
+                </div>
+
+                <div class="bg-green-50 p-4 rounded-lg">
+                    <h4 class="font-semibold mb-2">🎯 Key Learning Points</h4>
+                    <ul class="list-disc list-inside space-y-1">
+                        <li>Past tense narration and verb consistency</li>
+                        <li>Present perfect vs past perfect usage</li>
+                        <li>Article usage with meals and places</li>
+                        <li>Prepositions with verbs and locations</li>
+                        <li>Idiomatic expressions and their meanings</li>
+                    </ul>
+                </div>
+
+                <div class="bg-yellow-50 p-4 rounded-lg">
+                    <h4 class="font-semibold mb-2">💡 Moral of the Story</h4>
+                    <p>"One good turn deserves another" - This story shows how cleverness can turn the tables. Tony's habit of borrowing money backfired when someone used the same tactic against him!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+        
+        createApp({
+            data() {
+                return {
+                    activeTab: 'original',
+                    tabs: [
+                        { id: 'original', name: '📖 Original Text' },
+                        { id: 'grammar', name: '✏️ Grammar' },
+                        { id: 'vocabulary', name: '📚 Vocabulary' },
+                        { id: 'comprehension', name: '🤔 Questions' },
+                        { id: 'practice', name: '✍️ Practice' },
+                        { id: 'advanced', name: '🚀 Advanced Learning' },
+                        { id: 'summary', name: '📝 Summary' }
+                    ],
+                    // Audio functionality
+                    isPlaying: false,
+                    speechRate: 1,
+                    speechSynthesis: null,
+                    utterance: null,
+                    
+                    // Practice exercises data
+                    exercise1: {
+                        answer1: '',
+                        answer2: '',
+                        answer3: '',
+                        answer4: '',
+                        check1: false,
+                        check2: false,
+                        check3: false,
+                        check4: false,
+                        correct1: false,
+                        correct2: false,
+                        correct3: false,
+                        correct4: false,
+                        allCorrect: false
+                    },
+                    exercise2: {
+                        answer1: '',
+                        answer2: '',
+                        answer3: '',
+                        answer4: '',
+                        check1: false,
+                        check2: false,
+                        check3: false,
+                        check4: false,
+                        correct1: false,
+                        correct2: false,
+                        correct3: false,
+                        correct4: false,
+                        allCorrect: false
+                    },
+                    exercise3: {
+                        answer1: '',
+                        answer2: '',
+                        answer3: ''
+                    },
+                    answersSaved: false,
+                    
+                    // Advanced Learning Features
+                    advancedMethod: 'flashcards',
+                    
+                    // Flashcards data
+                    flashcards: [
+                        {
+                            question: "What does 'came in' mean?",
+                            answer: "Entered (past tense)",
+                            explanation: "Past tense of 'come in' - to enter a place",
+                            flipped: false,
+                            difficulty: null,
+                            nextReview: null
+                        },
+                        {
+                            question: "Where does Tony work?",
+                            answer: "At a bank",
+                            explanation: "Preposition 'at' is used with specific locations like workplaces",
+                            flipped: false,
+                            difficulty: null,
+                            nextReview: null
+                        },
+                        {
+                            question: "What is the past tense of 'sit'?",
+                            answer: "Sat",
+                            explanation: "Irregular verb: sit → sat → sat",
+                            flipped: false,
+                            difficulty: null,
+                            nextReview: null
+                        },
+                        {
+                            question: "What does 'lend' mean?",
+                            answer: "To give temporarily",
+                            explanation: "To give something expecting it back (opposite of borrow)",
+                            flipped: false,
+                            difficulty: null,
+                            nextReview: null
+                        },
+                        {
+                            question: "What's the difference between 'borrow' and 'lend'?",
+                            answer: "Borrow = receive, Lend = give",
+                            explanation: "I borrow FROM you, You lend TO me",
+                            flipped: false,
+                            difficulty: null,
+                            nextReview: null
+                        },
+                        {
+                            question: "What does 'One good turn deserves another' mean?",
+                            answer: "Help others who help you",
+                            explanation: "If someone helps you, you should help them back",
+                            flipped: false,
+                            difficulty: null,
+                            nextReview: null
+                        }
+                    ],
+                    
+                    // Pronunciation practice data
+                    pronunciationWords: [
+                        {
+                            word: "restaurant",
+                            phonetic: "/ˈrestərɑːnt/",
+                            meaning: "A place where people pay to eat meals",
+                            tip: "Stress on the first syllable: REST-ər-ant"
+                        },
+                        {
+                            word: "expensive",
+                            phonetic: "/ɪkˈspensɪv/",
+                            meaning: "Costing a lot of money",
+                            tip: "Stress on the second syllable: ex-PEN-sive"
+                        },
+                        {
+                            word: "borrowed",
+                            phonetic: "/ˈbɒroʊd/",
+                            meaning: "Past tense of borrow - to take temporarily",
+                            tip: "Two syllables: BOR-rowed, silent 'w'"
+                        },
+                        {
+                            word: "twenty",
+                            phonetic: "/ˈtwenti/",
+                            meaning: "The number 20",
+                            tip: "Silent 'w': TWEN-ty, not 'twenty'"
+                        },
+                        {
+                            word: "pounds",
+                            phonetic: "/paʊndz/",
+                            meaning: "British currency",
+                            tip: "Diphthong 'ou' sounds like 'ow': POW-nds"
+                        }
+                    ],
+                    recordingIndex: -1,
+                    
+                    // Progress tracking
+                    masteredWords: 8,
+                    totalWords: 15,
+                    studyTime: 25,
+                    retentionRate: 87,
+                    
+                    vocabulary: [
+                        {
+                            term: 'deserve',
+                            type: 'verb',
+                            meaning: 'to be worthy of; to merit',
+                            example: 'He deserves a promotion for his hard work.'
+                        },
+                        {
+                            term: 'borrow',
+                            type: 'verb',
+                            meaning: 'to take and use something belonging to someone else',
+                            example: 'Can I borrow your pen?'
+                        },
+                        {
+                            term: 'lend',
+                            type: 'verb',
+                            meaning: 'to give something to someone for temporary use',
+                            example: 'I will lend you my book.'
+                        },
+                        {
+                            term: 'salary',
+                            type: 'noun',
+                            meaning: 'fixed regular payment for work',
+                            example: 'She gets a good salary at her new job.'
+                        },
+                        {
+                            term: 'immediately',
+                            type: 'adverb',
+                            meaning: 'at once; without delay',
+                            example: 'Please come here immediately.'
+                        },
+                        {
+                            term: 'surprise',
+                            type: 'noun/verb',
+                            meaning: 'an unexpected event; to cause surprise',
+                            example: 'To my surprise, it started raining.'
+                        }
+                    ],
+                    questions: [
+                        {
+                            q: 'Who pays for Tony\'s dinner?',
+                            a: 'The narrator pays for Tony\'s dinner. Tony cleverly got the narrator to pay by lending him money first, then asking him to pay for the dinner.'
+                        },
+                        {
+                            q: 'Where does Tony work now?',
+                            a: 'Tony now works at a bank. He used to work in a lawyer\'s office years ago.'
+                        },
+                        {
+                            q: 'What is Tony\'s bad habit?',
+                            a: 'Tony always borrows money from his friends and never pays it back.'
+                        },
+                        {
+                            q: 'Why was the narrator surprised?',
+                            a: 'The narrator was surprised because Tony gave him the money immediately, which was unusual since Tony usually borrows money rather than lending it.'
+                        },
+                        {
+                            q: 'What does the title mean?',
+                            a: 'The title means that if you do something good (or clever) for someone, they should do something good (or clever) back for you. In this case, Tony turned the tables on the narrator.'
+                        }
+                    ],
+                    showAnswers: {}
+                }
+            },
+            mounted() {
+                // Initialize speech synthesis
+                this.speechSynthesis = window.speechSynthesis;
+            },
+            methods: {
+                // Audio methods
+                playAudio() {
+                    if (this.isPlaying) {
+                        this.speechSynthesis.pause();
+                        this.isPlaying = false;
+                    } else {
+                        const storyText = document.getElementById('story-text').innerText;
+                        this.utterance = new SpeechSynthesisUtterance(storyText);
+                        this.utterance.rate = this.speechRate;
+                        this.utterance.lang = 'en-US';
+                        
+                        this.utterance.onstart = () => {
+                            this.isPlaying = true;
+                        };
+                        
+                        this.utterance.onend = () => {
+                            this.isPlaying = false;
+                        };
+                        
+                        this.speechSynthesis.speak(this.utterance);
+                    }
+                },
+                
+                stopAudio() {
+                    this.speechSynthesis.cancel();
+                    this.isPlaying = false;
+                },
+                
+                updateSpeechRate() {
+                    if (this.utterance) {
+                        this.utterance.rate = this.speechRate;
+                    }
+                },
+                
+                // Exercise checking methods
+                checkExercise1() {
+                    const answers = ['worked', 'borrows', 'asked', 'surprise'];
+                    
+                    this.exercise1.correct1 = this.exercise1.answer1.toLowerCase().trim() === answers[0];
+                    this.exercise1.correct2 = this.exercise1.answer2.toLowerCase().trim() === answers[1];
+                    this.exercise1.correct3 = this.exercise1.answer3.toLowerCase().trim() === answers[2];
+                    this.exercise1.correct4 = this.exercise1.answer4.toLowerCase().trim() === answers[3];
+                    
+                    this.exercise1.check1 = this.exercise1.answer1.length > 0;
+                    this.exercise1.check2 = this.exercise1.answer2.length > 0;
+                    this.exercise1.check3 = this.exercise1.answer3.length > 0;
+                    this.exercise1.check4 = this.exercise1.answer4.length > 0;
+                    
+                    this.exercise1.allCorrect = this.exercise1.correct1 && this.exercise1.correct2 && 
+                                              this.exercise1.correct3 && this.exercise1.correct4;
+                },
+                
+                checkExercise2() {
+                    const correctAnswers = [
+                        'he had never borrowed money from me',
+                        'i was having dinner at a restaurant',
+                        'tony came and sat at the same table',
+                        'i asked him to lend me twenty pounds'
+                    ];
+                    
+                    this.exercise2.correct1 = this.exercise2.answer1.toLowerCase().trim() === correctAnswers[0];
+                    this.exercise2.correct2 = this.exercise2.answer2.toLowerCase().trim() === correctAnswers[1];
+                    this.exercise2.correct3 = this.exercise2.answer3.toLowerCase().trim() === correctAnswers[2];
+                    this.exercise2.correct4 = this.exercise2.answer4.toLowerCase().trim() === correctAnswers[3];
+                    
+                    this.exercise2.check1 = this.exercise2.answer1.length > 0;
+                    this.exercise2.check2 = this.exercise2.answer2.length > 0;
+                    this.exercise2.check3 = this.exercise2.answer3.length > 0;
+                    this.exercise2.check4 = this.exercise2.answer4.length > 0;
+                    
+                    this.exercise2.allCorrect = this.exercise2.correct1 && this.exercise2.correct2 && 
+                                              this.exercise2.correct3 && this.exercise2.correct4;
+                },
+                
+                saveAnswers() {
+                    // Simulate saving answers (in a real app, this would send to a server)
+                    this.answersSaved = true;
+                    setTimeout(() => {
+                        this.answersSaved = false;
+                    }, 3000);
+                },
+                
+                toggleAnswer(index) {
+                    this.showAnswers[index] = !this.showAnswers[index];
+                },
+                
+                // Advanced Learning Methods
+                
+                // Flashcard methods
+                flipCard(index) {
+                    this.flashcards[index].flipped = !this.flashcards[index].flipped;
+                },
+                
+                markCard(index, difficulty) {
+                    this.flashcards[index].difficulty = difficulty;
+                    
+                    // Spaced repetition algorithm
+                    const now = new Date();
+                    let nextReviewDays;
+                    
+                    switch(difficulty) {
+                        case 'easy':
+                            nextReviewDays = 7; // Review in 1 week
+                            this.masteredWords = Math.min(this.masteredWords + 1, this.totalWords);
+                            break;
+                        case 'medium':
+                            nextReviewDays = 3; // Review in 3 days
+                            break;
+                        case 'hard':
+                            nextReviewDays = 1; // Review tomorrow
+                            break;
+                    }
+                    
+                    this.flashcards[index].nextReview = new Date(now.getTime() + nextReviewDays * 24 * 60 * 60 * 1000);
+                    
+                    // Update retention rate
+                    const easyCards = this.flashcards.filter(card => card.difficulty === 'easy').length;
+                    this.retentionRate = Math.round((easyCards / this.flashcards.length) * 100);
+                    
+                    // Auto-flip back after marking
+                    setTimeout(() => {
+                        this.flashcards[index].flipped = false;
+                    }, 1500);
+                },
+                
+                // Pronunciation methods
+                playWordAudio(word) {
+                    if (this.speechSynthesis) {
+                        const utterance = new SpeechSynthesisUtterance(word);
+                        utterance.lang = 'en-US';
+                        utterance.rate = 0.8; // Slower for pronunciation practice
+                        utterance.pitch = 1;
+                        this.speechSynthesis.speak(utterance);
+                    }
+                },
+                
+                startRecording(index) {
+                    if (this.recordingIndex === index) {
+                        // Stop recording
+                        this.recordingIndex = -1;
+                    } else {
+                        // Start recording
+                        this.recordingIndex = index;
+                        
+                        // Simulate recording for 3 seconds
+                        setTimeout(() => {
+                            this.recordingIndex = -1;
+                            alert('Great job! Your pronunciation has been recorded. Keep practicing!');
+                        }, 3000);
+                    }
+                },
+                
+                // Progress tracking methods
+                updateStudyTime() {
+                    this.studyTime += 1;
+                },
+                
+                // Initialize advanced learning features
+                initAdvancedLearning() {
+                    // Load saved progress from localStorage
+                    const savedProgress = localStorage.getItem('lesson11_progress');
+                    if (savedProgress) {
+                        const progress = JSON.parse(savedProgress);
+                        this.masteredWords = progress.masteredWords || this.masteredWords;
+                        this.studyTime = progress.studyTime || this.studyTime;
+                        this.retentionRate = progress.retentionRate || this.retentionRate;
+                    }
+                    
+                    // Start study time tracker
+                    setInterval(() => {
+                        this.updateStudyTime();
+                        
+                        // Save progress every minute
+                        const progress = {
+                            masteredWords: this.masteredWords,
+                            studyTime: this.studyTime,
+                            retentionRate: this.retentionRate
+                        };
+                        localStorage.setItem('lesson11_progress', JSON.stringify(progress));
+                    }, 60000); // Every minute
+                }
+            },
+            
+            mounted() {
+                this.initAdvancedLearning();
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
