@@ -455,11 +455,11 @@
                     </div>
                     
                     <!-- Sailing Game Area -->
-                    <div class="bg-gradient-to-b from-blue-200 to-blue-400 rounded-xl p-6 min-h-96 relative overflow-hidden">
+                    <div class="bg-gradient-to-b from-blue-200 to-blue-400 rounded-xl p-6 min-h-[500px] relative overflow-visible">
                         <!-- Boat Position -->
                         <div 
                             class="sailing-boat absolute text-4xl"
-                            :style="{ left: boatPosition + '%', top: '60%' }"
+                            :style="{ left: boatPosition + '%', top: '40%' }"
                         >
                             ⛵
                         </div>
@@ -470,9 +470,10 @@
                         
                         <!-- Waves -->
                         <div class="absolute bottom-0 left-0 right-0 h-16 bg-blue-500 wave-animation opacity-70"></div>
-                        
-                        <!-- Current Question -->
-                        <div v-if="currentSailingQuestion" class="absolute bottom-20 left-1/2 transform -translate-x-1/2 bg-white rounded-lg p-4 shadow-lg max-w-md w-full">
+                    </div>
+                    
+                    <!-- Current Question - Moved outside game area for better visibility -->
+                    <div v-if="currentSailingQuestion" class="mt-6 bg-white rounded-lg p-6 shadow-lg max-w-2xl mx-auto">
                             <h4 class="font-bold mb-3">{{ currentSailingQuestion.question }}</h4>
                             <div class="space-y-2">
                                 <button 
@@ -486,27 +487,26 @@
                             </div>
                         </div>
                         
-                        <!-- Game Over / Win Message -->
-                        <div v-if="sailingGameOver" class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                            <div class="bg-white rounded-xl p-8 text-center max-w-md">
-                                <div v-if="sailingWon" class="celebration">
-                                    <div class="text-6xl mb-4">🏆</div>
-                                    <h3 class="text-2xl font-bold text-green-600 mb-2">Victory!</h3>
-                                    <p class="text-green-800 mb-4">Captain Alison completed the Atlantic race! Score: {{ sailingScore }} points</p>
-                                </div>
-                                <div v-else>
-                                    <div class="text-6xl mb-4">⚓</div>
-                                    <h3 class="text-2xl font-bold text-red-600 mb-2">Game Over</h3>
-                                    <p class="text-red-800 mb-4">The journey was too challenging this time. Score: {{ sailingScore }} points</p>
-                                </div>
-                                <button @click="resetSailingGame" class="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 mr-2">
-                                    Try Again
-                                </button>
-                                <button @click="currentGame = 'menu'" class="bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600">
-                                    Back to Menu
-                                </button>
-                            </div>
+                    
+                    <!-- Game Over / Win Message -->
+                    <div v-if="sailingGameOver" class="mt-6 bg-white rounded-xl p-8 text-center max-w-2xl mx-auto shadow-lg">
+                        <div v-if="sailingWon" class="celebration">
+                            <div class="text-6xl mb-4">🏆</div>
+                            <h3 class="text-2xl font-bold text-green-600 mb-2">Victory!</h3>
+                            <p class="text-green-800 mb-4">Captain Alison completed the Atlantic race! Score: {{ sailingScore }} points</p>
                         </div>
+                        <div v-else>
+                            <div class="text-6xl mb-4">⚓</div>
+                            <h3 class="text-2xl font-bold text-red-600 mb-2">Game Over</h3>
+                            <p class="text-red-800 mb-4">The journey was too challenging this time. Score: {{ sailingScore }} points</p>
+                        </div>
+                        <button @click="resetSailingGame" class="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 mr-2">
+                            Try Again
+                        </button>
+                        <button @click="currentGame = 'menu'" class="bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600">
+                            Back to Menu
+                        </button>
+                    </div>
                     </div>
                 </div>
             </div>
