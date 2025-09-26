@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Captain Alison's Adventure Game - Lesson 12</title>
+    <link href="https://cdn.bootcdn.net/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.bootcdn.net/ajax/libs/vue/3.3.4/vue.global.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka+One:wght@400&family=Nunito:wght@400;600;700&display=swap');
+        
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .game-title {
+            font-family: 'Fredoka One', cursive;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .boat-animation {
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(-2deg); }
+            50% { transform: translateY(-10px) rotate(2deg); }
+        }
+        
+        .wave-animation {
+            animation: wave 2s ease-in-out infinite;
+        }
+        
+        @keyframes wave {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-5px); }
+        }
+        
+        .card-flip {
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+        }
+        
+        .card-flip.flipped {
+            transform: rotateY(180deg);
+        }
+        
+        .card-front, .card-back {
+            backface-visibility: hidden;
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .card-back {
+            transform: rotateY(180deg);
+        }
+        
+        .drag-item {
+            cursor: grab;
+            transition: all 0.3s ease;
+        }
+        
+        .drag-item:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        }
+        
+        .drag-item.dragging {
+            cursor: grabbing;
+            transform: rotate(5deg) scale(1.1);
+            z-index: 1000;
+        }
+        
+        .drop-zone {
+            transition: all 0.3s ease;
+            border: 2px dashed #cbd5e0;
+        }
+        
+        .drop-zone.drag-over {
+            border-color: #4299e1;
+            background-color: #ebf8ff;
+            transform: scale(1.02);
+        }
+        
+        .drop-zone.correct {
+            border-color: #48bb78;
+            background-color: #f0fff4;
+        }
+        
+        .drop-zone.incorrect {
+            border-color: #f56565;
+            background-color: #fff5f5;
+            animation: shake 0.5s ease-in-out;
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        
+        .sailing-boat {
+            transition: all 1s ease-in-out;
+        }
+        
+        .treasure-sparkle {
+            animation: sparkle 1.5s ease-in-out infinite;
+        }
+        
+        @keyframes sparkle {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.2); }
+        }
+        
+        .score-popup {
+            animation: scorePopup 0.8s ease-out;
+        }
+        
+        @keyframes scorePopup {
+            0% { transform: scale(0) translateY(0); opacity: 0; }
+            50% { transform: scale(1.2) translateY(-20px); opacity: 1; }
+            100% { transform: scale(1) translateY(-30px); opacity: 0; }
+        }
+        
+        .celebration {
+            animation: celebration 2s ease-in-out;
+        }
+        
+        @keyframes celebration {
+            0%, 100% { transform: scale(1); }
+            25% { transform: scale(1.1) rotate(-5deg); }
+            75% { transform: scale(1.1) rotate(5deg); }
+        }
+        
+        .ocean-bg {
+            background: linear-gradient(180deg, #87CEEB 0%, #4682B4 50%, #191970 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .cloud {
+            position: absolute;
+            background: white;
+            border-radius: 50px;
+            opacity: 0.8;
+            animation: cloudMove 20s linear infinite;
+        }
+        
+        @keyframes cloudMove {
+            0% { transform: translateX(-100px); }
+            100% { transform: translateX(calc(100vw + 100px)); }
+        }
+        
+        .seagull {
+            position: absolute;
+            font-size: 20px;
+            animation: seagullFly 15s linear infinite;
+        }
+        
+        @keyframes seagullFly {
+            0% { transform: translateX(-50px) translateY(0px); }
+            25% { transform: translateX(25vw) translateY(-20px); }
+            50% { transform: translateX(50vw) translateY(-10px); }
+            75% { transform: translateX(75vw) translateY(-30px); }
+            100% { transform: translateX(calc(100vw + 50px)) translateY(0px); }
+        }
+    </style>
+</head>
+<body>
+    <div id="app" class="min-h-screen">
+        <!-- Header -->
+        <div class="bg-white shadow-lg">
+            <div class="container mx-auto px-4 py-4">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <div class="text-4xl boat-animation">⛵</div>
+                        <div>
+                            <h1 class="text-3xl font-bold text-blue-600 game-title">Captain Alison's Adventure</h1>
+                            <p class="text-gray-600">Lesson 12 Interactive Game</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <div class="bg-yellow-100 px-4 py-2 rounded-lg">
+                            <span class="text-yellow-800 font-semibold">Score: {{ totalScore }}</span>
+                        </div>
+                        <div class="bg-blue-100 px-4 py-2 rounded-lg">
+                            <span class="text-blue-800 font-semibold">Level: {{ currentLevel }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Selection Menu -->
+        <div v-if="currentGame === 'menu'" class="ocean-bg min-h-screen relative">
+            <!-- Animated Background Elements -->
+            <div class="cloud" style="top: 10%; width: 80px; height: 40px; animation-delay: 0s;"></div>
+            <div class="cloud" style="top: 20%; width: 120px; height: 60px; animation-delay: 5s;"></div>
+            <div class="cloud" style="top: 15%; width: 100px; height: 50px; animation-delay: 10s;"></div>
+            <div class="seagull" style="top: 25%; animation-delay: 2s;">🕊️</div>
+            <div class="seagull" style="top: 35%; animation-delay: 8s;">🕊️</div>
+            
+            <div class="container mx-auto px-4 py-12">
+                <div class="text-center mb-12">
+                    <h2 class="text-5xl font-bold text-white game-title mb-4">Welcome Aboard!</h2>
+                    <p class="text-xl text-white">Help Captain Charles Alison prepare for his Atlantic adventure!</p>
+                </div>
+                
+                <div class="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+                    <!-- Game 1: Word Matching -->
+                    <div class="bg-white rounded-xl shadow-2xl p-6 transform hover:scale-105 transition-all duration-300 cursor-pointer" @click="startGame('wordMatch')">
+                        <div class="text-center">
+                            <div class="text-6xl mb-4">🎯</div>
+                            <h3 class="text-2xl font-bold text-blue-600 mb-2">Word Harbor</h3>
+                            <p class="text-gray-600 mb-4">Match vocabulary words with their meanings</p>
+                            <div class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-semibold">
+                                Easy • 10 Points
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Game 2: Story Sequencing -->
+                    <div class="bg-white rounded-xl shadow-2xl p-6 transform hover:scale-105 transition-all duration-300 cursor-pointer" @click="startGame('storySequence')">
+                        <div class="text-center">
+                            <div class="text-6xl mb-4">📚</div>
+                            <h3 class="text-2xl font-bold text-green-600 mb-2">Story Voyage</h3>
+                            <p class="text-gray-600 mb-4">Put the story events in correct order</p>
+                            <div class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-semibold">
+                                Medium • 20 Points
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Game 3: Sailing Adventure -->
+                    <div class="bg-white rounded-xl shadow-2xl p-6 transform hover:scale-105 transition-all duration-300 cursor-pointer" @click="startGame('sailingAdventure')">
+                        <div class="text-center">
+                            <div class="text-6xl mb-4">🏆</div>
+                            <h3 class="text-2xl font-bold text-purple-600 mb-2">Atlantic Race</h3>
+                            <p class="text-gray-600 mb-4">Navigate Topsail across the Atlantic</p>
+                            <div class="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-semibold">
+                                Hard • 30 Points
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Progress Summary -->
+                <div class="mt-12 bg-white bg-opacity-90 rounded-xl p-6 max-w-2xl mx-auto">
+                    <h3 class="text-xl font-bold text-center mb-4">Your Progress</h3>
+                    <div class="grid grid-cols-3 gap-4 text-center">
+                        <div>
+                            <div class="text-2xl font-bold text-blue-600">{{ gamesCompleted }}</div>
+                            <div class="text-sm text-gray-600">Games Completed</div>
+                        </div>
+                        <div>
+                            <div class="text-2xl font-bold text-green-600">{{ totalScore }}</div>
+                            <div class="text-sm text-gray-600">Total Score</div>
+                        </div>
+                        <div>
+                            <div class="text-2xl font-bold text-purple-600">{{ Math.round(averageScore) }}%</div>
+                            <div class="text-sm text-gray-600">Average Score</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game 1: Word Matching -->
+        <div v-if="currentGame === 'wordMatch'" class="container mx-auto px-4 py-8">
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-blue-600">🎯 Word Harbor - Match the Words!</h2>
+                    <button @click="currentGame = 'menu'" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
+                        Back to Menu
+                    </button>
+                </div>
+                
+                <div class="mb-6">
+                    <div class="bg-blue-50 p-4 rounded-lg">
+                        <p class="text-blue-800 font-semibold">Instructions: Drag the words to match them with their correct meanings!</p>
+                        <div class="mt-2">
+                            <span class="text-sm text-blue-600">Progress: {{ wordMatchProgress }}/{{ wordPairs.length }} • Score: {{ wordMatchScore }}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="grid md:grid-cols-2 gap-8">
+                    <!-- Words Column -->
+                    <div>
+                        <h3 class="text-lg font-semibold mb-4 text-center">📝 Words</h3>
+                        <div class="space-y-3">
+                            <div 
+                                v-for="word in shuffledWords" 
+                                :key="word.id"
+                                :class="['drag-item bg-blue-100 p-4 rounded-lg text-center font-semibold cursor-grab', word.matched ? 'opacity-50' : '']"
+                                :draggable="!word.matched"
+                                @dragstart="dragStart($event, word)"
+                                @dragend="dragEnd"
+                            >
+                                {{ word.word }}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Meanings Column -->
+                    <div>
+                        <h3 class="text-lg font-semibold mb-4 text-center">💡 Meanings</h3>
+                        <div class="space-y-3">
+                            <div 
+                                v-for="meaning in shuffledMeanings" 
+                                :key="meaning.id"
+                                :class="['drop-zone p-4 rounded-lg text-center min-h-16 flex items-center justify-center', 
+                                        meaning.matched ? 'correct' : '',
+                                        meaning.dragOver ? 'drag-over' : '',
+                                        meaning.incorrect ? 'incorrect' : 'bg-green-50']"
+                                @dragover.prevent="dragOver($event, meaning)"
+                                @dragleave="dragLeave(meaning)"
+                                @drop="drop($event, meaning)"
+                            >
+                                <span v-if="meaning.matched" class="text-green-800 font-semibold">
+                                    ✅ {{ meaning.matchedWord }} - {{ meaning.meaning }}
+                                </span>
+                                <span v-else class="text-gray-600">
+                                    {{ meaning.meaning }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Completion Message -->
+                <div v-if="wordMatchComplete" class="mt-8 text-center">
+                    <div class="celebration bg-green-100 p-6 rounded-xl">
+                        <div class="text-4xl mb-2">🎉</div>
+                        <h3 class="text-2xl font-bold text-green-600 mb-2">Excellent Work!</h3>
+                        <p class="text-green-800">You've mastered all the vocabulary! Score: {{ wordMatchScore }} points</p>
+                        <button @click="currentGame = 'menu'" class="mt-4 bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600">
+                            Continue Adventure
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game 2: Story Sequencing -->
+        <div v-if="currentGame === 'storySequence'" class="container mx-auto px-4 py-8">
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-green-600">📚 Story Voyage - Order the Events!</h2>
+                    <button @click="currentGame = 'menu'" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
+                        Back to Menu
+                    </button>
+                </div>
+                
+                <div class="mb-6">
+                    <div class="bg-green-50 p-4 rounded-lg">
+                        <p class="text-green-800 font-semibold">Instructions: Drag the story events to put them in the correct order!</p>
+                        <div class="mt-2">
+                            <span class="text-sm text-green-600">Attempts: {{ sequenceAttempts }} • Score: {{ sequenceScore }}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="grid md:grid-cols-2 gap-8">
+                    <!-- Scrambled Events -->
+                    <div>
+                        <h3 class="text-lg font-semibold mb-4 text-center">🔀 Story Events</h3>
+                        <div class="space-y-3">
+                            <div 
+                                v-for="event in scrambledEvents" 
+                                :key="event.id"
+                                :class="['drag-item bg-yellow-100 p-4 rounded-lg cursor-grab', event.placed ? 'opacity-50' : '']"
+                                :draggable="!event.placed"
+                                @dragstart="dragStart($event, event)"
+                                @dragend="dragEnd"
+                            >
+                                <div class="font-semibold text-yellow-800">{{ event.text }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Sequence Slots -->
+                    <div>
+                        <h3 class="text-lg font-semibold mb-4 text-center">📋 Correct Order</h3>
+                        <div class="space-y-3">
+                            <div 
+                                v-for="(slot, index) in sequenceSlots" 
+                                :key="index"
+                                :class="['drop-zone p-4 rounded-lg min-h-20 flex items-center justify-center border-2 border-dashed',
+                                        slot.correct ? 'correct' : '',
+                                        slot.dragOver ? 'drag-over' : 'bg-blue-50 border-blue-300']"
+                                @dragover.prevent="dragOver($event, slot)"
+                                @dragleave="dragLeave(slot)"
+                                @drop="dropSequence($event, slot, index)"
+                            >
+                                <div v-if="slot.event" class="text-center">
+                                    <div class="font-bold text-blue-600">{{ index + 1 }}.</div>
+                                    <div class="text-sm">{{ slot.event.text }}</div>
+                                </div>
+                                <div v-else class="text-gray-400 text-center">
+                                    <div class="font-bold">{{ index + 1 }}.</div>
+                                    <div class="text-sm">Drop event here</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-6 text-center">
+                    <button 
+                        @click="checkSequence" 
+                        :disabled="!allSlotsfilled"
+                        :class="['px-6 py-3 rounded-lg font-semibold', allSlotsFilled ? 'bg-green-500 text-white hover:bg-green-600' : 'bg-gray-300 text-gray-500 cursor-not-allowed']"
+                    >
+                        Check Order
+                    </button>
+                </div>
+                
+                <!-- Completion Message -->
+                <div v-if="sequenceComplete" class="mt-8 text-center">
+                    <div class="celebration bg-green-100 p-6 rounded-xl">
+                        <div class="text-4xl mb-2">🎉</div>
+                        <h3 class="text-2xl font-bold text-green-600 mb-2">Perfect Sequence!</h3>
+                        <p class="text-green-800">You've arranged the story perfectly! Score: {{ sequenceScore }} points</p>
+                        <button @click="currentGame = 'menu'" class="mt-4 bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600">
+                            Continue Adventure
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game 3: Sailing Adventure -->
+        <div v-if="currentGame === 'sailingAdventure'" class="ocean-bg min-h-screen relative">
+            <div class="container mx-auto px-4 py-8">
+                <div class="bg-white bg-opacity-95 rounded-xl shadow-lg p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-bold text-purple-600">🏆 Atlantic Race - Navigate Topsail!</h2>
+                        <button @click="currentGame = 'menu'" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
+                            Back to Menu
+                        </button>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <div class="bg-purple-50 p-4 rounded-lg">
+                            <p class="text-purple-800 font-semibold">Instructions: Answer questions correctly to help Captain Alison sail across the Atlantic!</p>
+                            <div class="mt-2 flex justify-between">
+                                <span class="text-sm text-purple-600">Progress: {{ sailingProgress }}% • Score: {{ sailingScore }}</span>
+                                <span class="text-sm text-purple-600">Lives: {{ '❤️'.repeat(sailingLives) }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Sailing Game Area -->
+                    <div class="bg-gradient-to-b from-blue-200 to-blue-400 rounded-xl p-6 min-h-96 relative overflow-hidden">
+                        <!-- Boat Position -->
+                        <div 
+                            class="sailing-boat absolute text-4xl"
+                            :style="{ left: boatPosition + '%', top: '60%' }"
+                        >
+                            ⛵
+                        </div>
+                        
+                        <!-- Progress Islands -->
+                        <div class="absolute top-4 left-4 text-2xl">🏝️ Portsmouth</div>
+                        <div class="absolute top-8 right-4 text-2xl treasure-sparkle">🏆 Atlantic Finish</div>
+                        
+                        <!-- Waves -->
+                        <div class="absolute bottom-0 left-0 right-0 h-16 bg-blue-500 wave-animation opacity-70"></div>
+                        
+                        <!-- Current Question -->
+                        <div v-if="currentSailingQuestion" class="absolute bottom-20 left-1/2 transform -translate-x-1/2 bg-white rounded-lg p-4 shadow-lg max-w-md w-full">
+                            <h4 class="font-bold mb-3">{{ currentSailingQuestion.question }}</h4>
+                            <div class="space-y-2">
+                                <button 
+                                    v-for="(option, index) in currentSailingQuestion.options" 
+                                    :key="index"
+                                    @click="answerSailingQuestion(index)"
+                                    class="w-full text-left p-2 rounded bg-blue-50 hover:bg-blue-100 transition-colors"
+                                >
+                                    {{ option }}
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Game Over / Win Message -->
+                        <div v-if="sailingGameOver" class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                            <div class="bg-white rounded-xl p-8 text-center max-w-md">
+                                <div v-if="sailingWon" class="celebration">
+                                    <div class="text-6xl mb-4">🏆</div>
+                                    <h3 class="text-2xl font-bold text-green-600 mb-2">Victory!</h3>
+                                    <p class="text-green-800 mb-4">Captain Alison completed the Atlantic race! Score: {{ sailingScore }} points</p>
+                                </div>
+                                <div v-else>
+                                    <div class="text-6xl mb-4">⚓</div>
+                                    <h3 class="text-2xl font-bold text-red-600 mb-2">Game Over</h3>
+                                    <p class="text-red-800 mb-4">The journey was too challenging this time. Score: {{ sailingScore }} points</p>
+                                </div>
+                                <button @click="resetSailingGame" class="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 mr-2">
+                                    Try Again
+                                </button>
+                                <button @click="currentGame = 'menu'" class="bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600">
+                                    Back to Menu
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Score Popup -->
+        <div v-if="showScorePopup" class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50">
+            <div class="score-popup bg-yellow-400 text-yellow-900 px-6 py-3 rounded-full font-bold text-xl">
+                +{{ lastScoreGain }} points!
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+        
+        createApp({
+            data() {
+                return {
+                    currentGame: 'menu',
+                    totalScore: 0,
+                    currentLevel: 1,
+                    gamesCompleted: 0,
+                    showScorePopup: false,
+                    lastScoreGain: 0,
+                    
+                    // Word Matching Game
+                    wordPairs: [
+                        { id: 1, word: 'neighbor', meaning: 'a person living nearby' },
+                        { id: 2, word: 'captain', meaning: 'the person in command of a ship' },
+                        { id: 3, word: 'harbor', meaning: 'a place where ships dock safely' },
+                        { id: 4, word: 'famous', meaning: 'well-known by many people' },
+                        { id: 5, word: 'proud', meaning: 'feeling pleased about achievements' },
+                        { id: 6, word: 'race', meaning: 'a competition to see who is fastest' }
+                    ],
+                    shuffledWords: [],
+                    shuffledMeanings: [],
+                    wordMatchScore: 0,
+                    wordMatchProgress: 0,
+                    wordMatchComplete: false,
+                    draggedItem: null,
+                    
+                    // Story Sequencing Game
+                    storyEvents: [
+                        { id: 1, text: 'Captain Alison will sail from Portsmouth tomorrow', order: 1 },
+                        { id: 2, text: 'We will meet him at the harbor early in the morning', order: 2 },
+                        { id: 3, text: 'He will be in his small boat Topsail', order: 3 },
+                        { id: 4, text: 'Captain Alison will set out at eight o\'clock', order: 4 },
+                        { id: 5, text: 'He will take part in an important race across the Atlantic', order: 5 }
+                    ],
+                    scrambledEvents: [],
+                    sequenceSlots: [],
+                    sequenceScore: 0,
+                    sequenceAttempts: 0,
+                    sequenceComplete: false,
+                    
+                    // Sailing Adventure Game
+                    sailingQuestions: [
+                        {
+                            question: 'What is the name of Captain Alison\'s boat?',
+                            options: ['Sailboat', 'Topsail', 'Atlantic', 'Portsmouth'],
+                            correct: 1
+                        },
+                        {
+                            question: 'Where will Captain Alison sail from?',
+                            options: ['London', 'Portsmouth', 'Atlantic', 'Harbor'],
+                            correct: 1
+                        },
+                        {
+                            question: 'When will Captain Alison set out?',
+                            options: ['Seven o\'clock', 'Eight o\'clock', 'Nine o\'clock', 'Ten o\'clock'],
+                            correct: 1
+                        },
+                        {
+                            question: 'How long will Captain Alison be away?',
+                            options: ['One month', 'Two months', 'Three months', 'Four months'],
+                            correct: 1
+                        },
+                        {
+                            question: 'What will Captain Alison take part in?',
+                            options: ['A party', 'A meeting', 'An important race', 'A celebration'],
+                            correct: 2
+                        }
+                    ],
+                    currentSailingQuestion: null,
+                    sailingQuestionIndex: 0,
+                    sailingScore: 0,
+                    sailingLives: 3,
+                    sailingProgress: 0,
+                    boatPosition: 0,
+                    sailingGameOver: false,
+                    sailingWon: false
+                }
+            },
+            
+            computed: {
+                averageScore() {
+                    return this.gamesCompleted > 0 ? (this.totalScore / this.gamesCompleted) : 0;
+                },
+                
+                allSlotsFilled() {
+                    return this.sequenceSlots.every(slot => slot.event !== null);
+                }
+            },
+            
+            mounted() {
+                this.initializeGames();
+            },
+            
+            methods: {
+                initializeGames() {
+                    this.initWordMatch();
+                    this.initStorySequence();
+                    this.initSailingAdventure();
+                },
+                
+                startGame(gameType) {
+                    this.currentGame = gameType;
+                    if (gameType === 'sailingAdventure') {
+                        this.startSailingQuestion();
+                    }
+                },
+                
+                showScore(points) {
+                    this.lastScoreGain = points;
+                    this.showScorePopup = true;
+                    setTimeout(() => {
+                        this.showScorePopup = false;
+                    }, 1000);
+                },
+                
+                // Word Matching Game Methods
+                initWordMatch() {
+                    this.shuffledWords = this.wordPairs.map(pair => ({
+                        ...pair,
+                        matched: false
+                    })).sort(() => Math.random() - 0.5);
+                    
+                    this.shuffledMeanings = this.wordPairs.map(pair => ({
+                        ...pair,
+                        matched: false,
+                        matchedWord: '',
+                        dragOver: false,
+                        incorrect: false
+                    })).sort(() => Math.random() - 0.5);
+                },
+                
+                dragStart(event, item) {
+                    this.draggedItem = item;
+                    event.target.classList.add('dragging');
+                },
+                
+                dragEnd(event) {
+                    event.target.classList.remove('dragging');
+                },
+                
+                dragOver(event, target) {
+                    if (!target.matched) {
+                        target.dragOver = true;
+                    }
+                },
+                
+                dragLeave(target) {
+                    target.dragOver = false;
+                    target.incorrect = false;
+                },
+                
+                drop(event, meaning) {
+                    meaning.dragOver = false;
+                    
+                    if (this.draggedItem && !meaning.matched) {
+                        if (this.draggedItem.id === meaning.id) {
+                            // Correct match
+                            meaning.matched = true;
+                            meaning.matchedWord = this.draggedItem.word;
+                            this.draggedItem.matched = true;
+                            this.wordMatchProgress++;
+                            this.wordMatchScore += 10;
+                            this.showScore(10);
+                            
+                            if (this.wordMatchProgress === this.wordPairs.length) {
+                                this.wordMatchComplete = true;
+                                this.totalScore += this.wordMatchScore;
+                                this.gamesCompleted++;
+                            }
+                        } else {
+                            // Incorrect match
+                            meaning.incorrect = true;
+                            setTimeout(() => {
+                                meaning.incorrect = false;
+                            }, 1000);
+                        }
+                    }
+                    
+                    this.draggedItem = null;
+                },
+                
+                // Story Sequencing Game Methods
+                initStorySequence() {
+                    this.scrambledEvents = [...this.storyEvents].map(event => ({
+                        ...event,
+                        placed: false
+                    })).sort(() => Math.random() - 0.5);
+                    
+                    this.sequenceSlots = Array(this.storyEvents.length).fill(null).map(() => ({
+                        event: null,
+                        correct: false,
+                        dragOver: false
+                    }));
+                },
+                
+                dropSequence(event, slot, index) {
+                    slot.dragOver = false;
+                    
+                    if (this.draggedItem && !slot.event) {
+                        slot.event = this.draggedItem;
+                        this.draggedItem.placed = true;
+                    }
+                    
+                    this.draggedItem = null;
+                },
+                
+                checkSequence() {
+                    this.sequenceAttempts++;
+                    let correctCount = 0;
+                    
+                    this.sequenceSlots.forEach((slot, index) => {
+                        if (slot.event && slot.event.order === index + 1) {
+                            slot.correct = true;
+                            correctCount++;
+                        } else {
+                            slot.correct = false;
+                        }
+                    });
+                    
+                    if (correctCount === this.storyEvents.length) {
+                        this.sequenceComplete = true;
+                        this.sequenceScore = Math.max(30 - (this.sequenceAttempts - 1) * 5, 10);
+                        this.totalScore += this.sequenceScore;
+                        this.gamesCompleted++;
+                        this.showScore(this.sequenceScore);
+                    } else {
+                        // Reset for another attempt
+                        setTimeout(() => {
+                            this.sequenceSlots.forEach(slot => {
+                                if (slot.event) {
+                                    slot.event.placed = false;
+                                }
+                                slot.event = null;
+                                slot.correct = false;
+                            });
+                        }, 2000);
+                    }
+                },
+                
+                // Sailing Adventure Game Methods
+                initSailingAdventure() {
+                    this.sailingQuestionIndex = 0;
+                    this.sailingScore = 0;
+                    this.sailingLives = 3;
+                    this.sailingProgress = 0;
+                    this.boatPosition = 0;
+                    this.sailingGameOver = false;
+                    this.sailingWon = false;
+                    this.currentSailingQuestion = null;
+                },
+                
+                startSailingQuestion() {
+                    if (this.sailingQuestionIndex < this.sailingQuestions.length) {
+                        this.currentSailingQuestion = this.sailingQuestions[this.sailingQuestionIndex];
+                    } else {
+                        this.sailingWon = true;
+                        this.sailingGameOver = true;
+                        this.totalScore += this.sailingScore;
+                        this.gamesCompleted++;
+                    }
+                },
+                
+                answerSailingQuestion(selectedIndex) {
+                    if (selectedIndex === this.currentSailingQuestion.correct) {
+                        // Correct answer
+                        this.sailingScore += 6;
+                        this.sailingProgress += 20;
+                        this.boatPosition += 20;
+                        this.showScore(6);
+                        
+                        this.sailingQuestionIndex++;
+                        setTimeout(() => {
+                            this.startSailingQuestion();
+                        }, 1000);
+                    } else {
+                        // Wrong answer
+                        this.sailingLives--;
+                        if (this.sailingLives <= 0) {
+                            this.sailingGameOver = true;
+                            this.sailingWon = false;
+                        } else {
+                            // Continue with same question
+                            setTimeout(() => {
+                                // Visual feedback for wrong answer
+                            }, 500);
+                        }
+                    }
+                },
+                
+                resetSailingGame() {
+                    this.initSailingAdventure();
+                    this.startSailingQuestion();
+                }
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>

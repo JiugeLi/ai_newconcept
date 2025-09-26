@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Concept English - Lesson 12: Goodbye and Good Luck</title>
+    <link href="https://cdn.bootcdn.net/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.bootcdn.net/ajax/libs/vue/3.3.4/vue.global.min.js"></script>
+    <style>
+        .error-text { color: #ef4444; }
+        .correct-text { color: #10b981; }
+        .highlight { background-color: #fef3c7; }
+        .grammar-tip { background-color: #dbeafe; border-left: 4px solid #3b82f6; }
+        
+        /* Flashcard Animation Styles */
+        .flashcard-container {
+            perspective: 1000px;
+        }
+        
+        .flashcard {
+            position: relative;
+            width: 100%;
+            height: 200px;
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+        }
+        
+        .flashcard.flipped {
+            transform: rotateY(180deg);
+        }
+        
+        .flashcard-front,
+        .flashcard-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .flashcard-back {
+            transform: rotateY(180deg);
+        }
+        
+        /* Memory Palace Styles */
+        .memory-location {
+            transition: all 0.3s ease;
+        }
+        
+        .memory-location:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Progress Bar Animation */
+        .progress-bar {
+            transition: width 0.8s ease-in-out;
+        }
+        
+        /* Pronunciation Practice Styles */
+        .recording-pulse {
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div id="app" class="container mx-auto px-4 py-8 max-w-4xl">
+        <!-- Header -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h1 class="text-3xl font-bold text-blue-600 mb-2">New Concept English - Lesson 12</h1>
+            <h2 class="text-xl text-gray-700 mb-4">Goodbye and Good Luck</h2>
+            <p class="text-gray-600">⛵ Let's learn about Captain Charles Alison's sailing adventure!</p>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="bg-white rounded-lg shadow-md mb-6">
+            <div class="flex border-b">
+                <button 
+                    v-for="tab in tabs" 
+                    :key="tab.id"
+                    @click="activeTab = tab.id"
+                    :class="['px-6 py-3 font-medium', activeTab === tab.id ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500 hover:text-gray-700']"
+                >
+                    {{ tab.name }}
+                </button>
+            </div>
+        </div>
+
+        <!-- Original Text Tab -->
+        <div v-show="activeTab === 'original'" class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h3 class="text-xl font-semibold mb-4">📖 Original Text</h3>
+            <div class="bg-gray-100 p-4 rounded-lg mb-4">
+                <p class="font-medium text-blue-600 mb-2">Question: Where is the captain going and how?</p>
+            </div>
+            
+            <!-- Audio Controls -->
+            <div class="mb-6 p-4 bg-blue-50 rounded-lg">
+                <h4 class="font-semibold mb-3">🔊 Listen to the Story</h4>
+                <div class="flex gap-3 mb-3">
+                    <button @click="playAudio" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 flex items-center gap-2">
+                        <span v-if="!isPlaying">▶️ Play Audio</span>
+                        <span v-else>⏸️ Pause Audio</span>
+                    </button>
+                    <button @click="stopAudio" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
+                        ⏹️ Stop
+                    </button>
+                </div>
+                <div class="flex items-center gap-3">
+                    <label class="text-sm font-medium">Speed:</label>
+                    <select v-model="speechRate" @change="updateSpeechRate" class="border rounded px-2 py-1">
+                        <option value="0.5">0.5x</option>
+                        <option value="0.75">0.75x</option>
+                        <option value="1">1x (Normal)</option>
+                        <option value="1.25">1.25x</option>
+                        <option value="1.5">1.5x</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div id="story-text" class="space-y-2 text-lg leading-relaxed">
+                <p>Our neighbor, Captain Charles Alison, will sail from Portsmouth tomorrow.</p>
+                <p>We will meet him at the harbor early in the morning.</p>
+                <p>He will be in his small boat Topsail.</p>
+                <p>Topsail is a famous little boat.</p>
+                <p>It has sailed across the Atlantic many times.</p>
+                <p>Captain Charles Alison will set out at eight o'clock, so we will have plenty of time.</p>
+                <p>We will see his boat and then say goodbye to him.</p>
+                <p>He will be away for two months.</p>
+                <p>We are very proud of him.</p>
+                <p class="highlight">He will take part in an important race across the Atlantic.</p>
+            </div>
+        </div>
+
+        <!-- Vocabulary Tab -->
+        <div v-show="activeTab === 'vocabulary'" class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h3 class="text-xl font-semibold mb-4">📚 Key Vocabulary & Phrases</h3>
+            
+            <div class="grid md:grid-cols-2 gap-4">
+                <div v-for="word in vocabulary" :key="word.term" class="border rounded-lg p-4">
+                    <h4 class="font-semibold text-blue-600 mb-2">{{ word.term }}</h4>
+                    <p class="text-sm text-gray-600 mb-1"><strong>Type:</strong> {{ word.type }}</p>
+                    <p class="text-sm text-gray-600 mb-2"><strong>Meaning:</strong> {{ word.meaning }}</p>
+                    <p class="text-sm italic text-gray-500">{{ word.example }}</p>
+                </div>
+            </div>
+
+            <div class="mt-6">
+                <h4 class="font-semibold mb-3">🎯 Important Phrases</h4>
+                <div class="space-y-2">
+                    <div class="bg-yellow-50 p-3 rounded">
+                        <strong>"Goodbye and good luck"</strong> - 再见，祝你好运
+                    </div>
+                    <div class="bg-yellow-50 p-3 rounded">
+                        <strong>"Set out"</strong> - 出发，启程
+                    </div>
+                    <div class="bg-yellow-50 p-3 rounded">
+                        <strong>"Take part in"</strong> - 参加，参与
+                    </div>
+                    <div class="bg-yellow-50 p-3 rounded">
+                        <strong>"Be proud of"</strong> - 为...感到骄傲
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Grammar Tab -->
+        <div v-show="activeTab === 'grammar'" class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h3 class="text-xl font-semibold mb-4">📝 Grammar Focus</h3>
+            
+            <div class="space-y-6">
+                <div class="grammar-tip p-4 rounded-lg">
+                    <h4 class="font-semibold mb-2">1. Future Tense with "will"</h4>
+                    <p class="mb-2">The story uses future tense to describe planned actions:</p>
+                    <ul class="list-disc list-inside space-y-1 text-sm">
+                        <li><strong>will sail</strong> - Captain Alison will sail tomorrow</li>
+                        <li><strong>will meet</strong> - We will meet him at the harbor</li>
+                        <li><strong>will be</strong> - He will be in his boat</li>
+                        <li><strong>will set out</strong> - He will set out at eight o'clock</li>
+                    </ul>
+                </div>
+
+                <div class="grammar-tip p-4 rounded-lg">
+                    <h4 class="font-semibold mb-2">2. Present Perfect Tense</h4>
+                    <p class="mb-2">"It <strong>has sailed</strong> across the Atlantic many times."</p>
+                    <p class="text-sm text-gray-600">• Used to describe past actions with present relevance</p>
+                    <p class="text-sm text-gray-600">• Shows the boat's experience and reputation</p>
+                </div>
+
+                <div class="grammar-tip p-4 rounded-lg">
+                    <h4 class="font-semibold mb-2">3. Time Expressions</h4>
+                    <ul class="list-disc list-inside space-y-1 text-sm">
+                        <li><strong>tomorrow</strong> - future time reference</li>
+                        <li><strong>early in the morning</strong> - specific time of day</li>
+                        <li><strong>at eight o'clock</strong> - exact time</li>
+                        <li><strong>for two months</strong> - duration</li>
+                    </ul>
+                </div>
+
+                <div class="grammar-tip p-4 rounded-lg">
+                    <h4 class="font-semibold mb-2">4. Phrasal Verbs</h4>
+                    <ul class="list-disc list-inside space-y-1 text-sm">
+                        <li><strong>set out</strong> - to begin a journey</li>
+                        <li><strong>take part in</strong> - to participate in</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Comprehension Tab -->
+        <div v-show="activeTab === 'comprehension'" class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h3 class="text-xl font-semibold mb-4">🤔 Comprehension Questions</h3>
+            
+            <div class="space-y-4">
+                <div v-for="(question, index) in questions" :key="index" class="border rounded-lg p-4">
+                    <p class="font-medium mb-2">{{ index + 1 }}. {{ question.q }}</p>
+                    <button 
+                        @click="toggleAnswer(index)"
+                        class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 mb-2"
+                    >
+                        {{ showAnswers[index] ? 'Hide Answer' : 'Show Answer' }}
+                    </button>
+                    <div v-show="showAnswers[index]" class="bg-green-50 p-3 rounded">
+                        <p class="text-green-800">{{ question.a }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Practice Tab -->
+        <div v-show="activeTab === 'practice'" class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h3 class="text-xl font-semibold mb-4">✍️ Practice Exercises</h3>
+            
+            <div class="space-y-8">
+                <!-- Exercise 1: Fill in the blanks -->
+                <div class="border rounded-lg p-4">
+                    <h4 class="font-semibold mb-4">Exercise 1: Fill in the blanks with the correct form</h4>
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-2">
+                            <span>1. Captain Alison</span>
+                            <input 
+                                v-model="exercise1.answer1" 
+                                @input="checkExercise1"
+                                class="border rounded px-2 py-1 w-24" 
+                                placeholder="____"
+                            >
+                            <span>from Portsmouth tomorrow. (sail)</span>
+                            <span v-if="exercise1.check1" :class="exercise1.correct1 ? 'text-green-600' : 'text-red-600'">
+                                {{ exercise1.correct1 ? '✅' : '❌' }}
+                            </span>
+                        </div>
+                        
+                        <div class="flex items-center gap-2">
+                            <span>2. The boat</span>
+                            <input 
+                                v-model="exercise1.answer2" 
+                                @input="checkExercise1"
+                                class="border rounded px-2 py-1 w-32" 
+                                placeholder="____"
+                            >
+                            <span>across the Atlantic many times. (sail)</span>
+                            <span v-if="exercise1.check2" :class="exercise1.correct2 ? 'text-green-600' : 'text-red-600'">
+                                {{ exercise1.correct2 ? '✅' : '❌' }}
+                            </span>
+                        </div>
+
+                        <div class="flex items-center gap-2">
+                            <span>3. He</span>
+                            <input 
+                                v-model="exercise1.answer3" 
+                                @input="checkExercise1"
+                                class="border rounded px-2 py-1 w-32" 
+                                placeholder="____"
+                            >
+                            <span>at eight o'clock. (set out)</span>
+                            <span v-if="exercise1.check3" :class="exercise1.correct3 ? 'text-green-600' : 'text-red-600'">
+                                {{ exercise1.correct3 ? '✅' : '❌' }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Exercise 2: Choose the correct answer -->
+                <div class="border rounded-lg p-4">
+                    <h4 class="font-semibold mb-4">Exercise 2: Choose the correct answer</h4>
+                    <div class="space-y-4">
+                        <div>
+                            <p class="mb-2">1. What is the name of Captain Alison's boat?</p>
+                            <div class="space-y-1">
+                                <label class="flex items-center">
+                                    <input type="radio" v-model="exercise2.q1" value="a" class="mr-2">
+                                    a) Sailboat
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="radio" v-model="exercise2.q1" value="b" class="mr-2">
+                                    b) Topsail
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="radio" v-model="exercise2.q1" value="c" class="mr-2">
+                                    c) Atlantic
+                                </label>
+                            </div>
+                            <div v-if="exercise2.q1" class="mt-2">
+                                <span :class="exercise2.q1 === 'b' ? 'text-green-600' : 'text-red-600'">
+                                    {{ exercise2.q1 === 'b' ? '✅ Correct!' : '❌ Try again!' }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div>
+                            <p class="mb-2">2. How long will Captain Alison be away?</p>
+                            <div class="space-y-1">
+                                <label class="flex items-center">
+                                    <input type="radio" v-model="exercise2.q2" value="a" class="mr-2">
+                                    a) One month
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="radio" v-model="exercise2.q2" value="b" class="mr-2">
+                                    b) Two months
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="radio" v-model="exercise2.q2" value="c" class="mr-2">
+                                    c) Three months
+                                </label>
+                            </div>
+                            <div v-if="exercise2.q2" class="mt-2">
+                                <span :class="exercise2.q2 === 'b' ? 'text-green-600' : 'text-red-600'">
+                                    {{ exercise2.q2 === 'b' ? '✅ Correct!' : '❌ Try again!' }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Progress Tracking -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-xl font-semibold mb-4">📊 Learning Progress</h3>
+            <div class="space-y-4">
+                <div>
+                    <div class="flex justify-between mb-1">
+                        <span class="text-sm font-medium">Overall Progress</span>
+                        <span class="text-sm">{{ Math.round(overallProgress) }}%</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-blue-600 h-2 rounded-full progress-bar" :style="{width: overallProgress + '%'}"></div>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                    <div class="p-3 bg-blue-50 rounded">
+                        <div class="text-2xl font-bold text-blue-600">{{ completedSections }}</div>
+                        <div class="text-sm text-gray-600">Sections Completed</div>
+                    </div>
+                    <div class="p-3 bg-green-50 rounded">
+                        <div class="text-2xl font-bold text-green-600">{{ correctAnswers }}</div>
+                        <div class="text-sm text-gray-600">Correct Answers</div>
+                    </div>
+                    <div class="p-3 bg-yellow-50 rounded">
+                        <div class="text-2xl font-bold text-yellow-600">{{ vocabularyLearned }}</div>
+                        <div class="text-sm text-gray-600">Words Learned</div>
+                    </div>
+                    <div class="p-3 bg-purple-50 rounded">
+                        <div class="text-2xl font-bold text-purple-600">{{ timeSpent }}</div>
+                        <div class="text-sm text-gray-600">Minutes Studied</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+        
+        createApp({
+            data() {
+                return {
+                    activeTab: 'original',
+                    isPlaying: false,
+                    speechRate: 1,
+                    currentUtterance: null,
+                    
+                    tabs: [
+                        { id: 'original', name: '📖 Original Text' },
+                        { id: 'vocabulary', name: '📚 Vocabulary' },
+                        { id: 'grammar', name: '📝 Grammar' },
+                        { id: 'comprehension', name: '🤔 Comprehension' },
+                        { id: 'practice', name: '✍️ Practice' }
+                    ],
+                    
+                    vocabulary: [
+                        {
+                            term: 'neighbor',
+                            type: 'noun',
+                            meaning: 'a person living next door or nearby',
+                            example: 'Our neighbor is very friendly.'
+                        },
+                        {
+                            term: 'captain',
+                            type: 'noun',
+                            meaning: 'the person in command of a ship or boat',
+                            example: 'Captain Alison is an experienced sailor.'
+                        },
+                        {
+                            term: 'sail',
+                            type: 'verb',
+                            meaning: 'to travel in a boat using wind power',
+                            example: 'We will sail across the ocean.'
+                        },
+                        {
+                            term: 'harbor',
+                            type: 'noun',
+                            meaning: 'a place where ships can dock safely',
+                            example: 'The boat is anchored in the harbor.'
+                        },
+                        {
+                            term: 'famous',
+                            type: 'adjective',
+                            meaning: 'well-known by many people',
+                            example: 'Topsail is a famous little boat.'
+                        },
+                        {
+                            term: 'set out',
+                            type: 'phrasal verb',
+                            meaning: 'to begin a journey',
+                            example: 'We will set out early in the morning.'
+                        },
+                        {
+                            term: 'proud',
+                            type: 'adjective',
+                            meaning: 'feeling pleased about achievements',
+                            example: 'We are proud of his courage.'
+                        },
+                        {
+                            term: 'race',
+                            type: 'noun',
+                            meaning: 'a competition to see who is fastest',
+                            example: 'He will take part in a sailing race.'
+                        }
+                    ],
+                    
+                    questions: [
+                        {
+                            q: 'Where is Captain Charles Alison going?',
+                            a: 'He is going across the Atlantic Ocean to take part in an important race.'
+                        },
+                        {
+                            q: 'How will Captain Alison travel?',
+                            a: 'He will travel by sailing in his small boat called Topsail.'
+                        },
+                        {
+                            q: 'When will Captain Alison set out?',
+                            a: 'He will set out at eight o\'clock in the morning.'
+                        },
+                        {
+                            q: 'What is special about Topsail?',
+                            a: 'Topsail is a famous little boat that has sailed across the Atlantic many times.'
+                        },
+                        {
+                            q: 'How long will Captain Alison be away?',
+                            a: 'He will be away for two months.'
+                        },
+                        {
+                            q: 'Where will they meet Captain Alison?',
+                            a: 'They will meet him at the harbor early in the morning.'
+                        }
+                    ],
+                    
+                    showAnswers: {},
+                    
+                    exercise1: {
+                        answer1: '',
+                        answer2: '',
+                        answer3: '',
+                        correct1: false,
+                        correct2: false,
+                        correct3: false,
+                        check1: false,
+                        check2: false,
+                        check3: false
+                    },
+                    
+                    exercise2: {
+                        q1: '',
+                        q2: ''
+                    },
+                    
+                    completedSections: 0,
+                    correctAnswers: 0,
+                    vocabularyLearned: 8,
+                    timeSpent: 0,
+                    startTime: Date.now()
+                }
+            },
+            
+            computed: {
+                overallProgress() {
+                    let progress = 0;
+                    if (this.activeTab !== 'original') progress += 20;
+                    if (Object.keys(this.showAnswers).length > 0) progress += 20;
+                    if (this.exercise1.answer1 || this.exercise1.answer2 || this.exercise1.answer3) progress += 30;
+                    if (this.exercise2.q1 || this.exercise2.q2) progress += 30;
+                    return Math.min(progress, 100);
+                }
+            },
+            
+            mounted() {
+                this.updateTimeSpent();
+                setInterval(this.updateTimeSpent, 60000); // Update every minute
+            },
+            
+            methods: {
+                playAudio() {
+                    if (this.isPlaying) {
+                        speechSynthesis.pause();
+                        this.isPlaying = false;
+                        return;
+                    }
+                    
+                    const text = document.getElementById('story-text').innerText;
+                    this.currentUtterance = new SpeechSynthesisUtterance(text);
+                    this.currentUtterance.rate = this.speechRate;
+                    this.currentUtterance.lang = 'en-US';
+                    
+                    this.currentUtterance.onstart = () => {
+                        this.isPlaying = true;
+                    };
+                    
+                    this.currentUtterance.onend = () => {
+                        this.isPlaying = false;
+                    };
+                    
+                    speechSynthesis.speak(this.currentUtterance);
+                },
+                
+                stopAudio() {
+                    speechSynthesis.cancel();
+                    this.isPlaying = false;
+                },
+                
+                updateSpeechRate() {
+                    if (this.currentUtterance) {
+                        speechSynthesis.cancel();
+                        this.isPlaying = false;
+                    }
+                },
+                
+                toggleAnswer(index) {
+                    this.$set(this.showAnswers, index, !this.showAnswers[index]);
+                },
+                
+                checkExercise1() {
+                    this.exercise1.correct1 = this.exercise1.answer1.toLowerCase().trim() === 'will sail';
+                    this.exercise1.correct2 = this.exercise1.answer2.toLowerCase().trim() === 'has sailed';
+                    this.exercise1.correct3 = this.exercise1.answer3.toLowerCase().trim() === 'will set out';
+                    
+                    this.exercise1.check1 = this.exercise1.answer1.length > 0;
+                    this.exercise1.check2 = this.exercise1.answer2.length > 0;
+                    this.exercise1.check3 = this.exercise1.answer3.length > 0;
+                    
+                    this.updateCorrectAnswers();
+                },
+                
+                updateCorrectAnswers() {
+                    let correct = 0;
+                    if (this.exercise1.correct1) correct++;
+                    if (this.exercise1.correct2) correct++;
+                    if (this.exercise1.correct3) correct++;
+                    if (this.exercise2.q1 === 'b') correct++;
+                    if (this.exercise2.q2 === 'b') correct++;
+                    this.correctAnswers = correct;
+                },
+                
+                updateTimeSpent() {
+                    this.timeSpent = Math.floor((Date.now() - this.startTime) / 60000);
+                }
+            },
+            
+            watch: {
+                'exercise2.q1'() {
+                    this.updateCorrectAnswers();
+                },
+                'exercise2.q2'() {
+                    this.updateCorrectAnswers();
+                }
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
