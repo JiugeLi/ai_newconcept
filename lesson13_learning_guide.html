@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Concept English - Lesson 13: The Greenwood Boys</title>
+    <link href="https://cdn.bootcdn.net/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.bootcdn.net/ajax/libs/vue/3.3.4/vue.global.min.js"></script>
+    <style>
+        .error-text { color: #ef4444; }
+        .correct-text { color: #10b981; }
+        .highlight { background-color: #fef3c7; }
+        .grammar-tip { background-color: #dbeafe; border-left: 4px solid #3b82f6; }
+        
+        /* Flashcard Animation Styles */
+        .flashcard-container {
+            perspective: 1000px;
+        }
+        
+        .flashcard {
+            position: relative;
+            width: 100%;
+            height: 200px;
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+        }
+        
+        .flashcard.flipped {
+            transform: rotateY(180deg);
+        }
+        
+        .flashcard-front,
+        .flashcard-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .flashcard-back {
+            transform: rotateY(180deg);
+        }
+        
+        /* Memory Palace Styles */
+        .memory-location {
+            transition: all 0.3s ease;
+        }
+        
+        .memory-location:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Progress Bar Animation */
+        .progress-bar {
+            transition: width 0.8s ease-in-out;
+        }
+        
+        /* Pronunciation Practice Styles */
+        .recording-pulse {
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        /* Concert Stage Animation */
+        .stage-lights {
+            animation: stageLights 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes stageLights {
+            0% { box-shadow: 0 0 20px #ff6b6b; }
+            50% { box-shadow: 0 0 30px #4ecdc4; }
+            100% { box-shadow: 0 0 20px #ffe66d; }
+        }
+        
+        .crowd-animation {
+            animation: crowdWave 1.5s ease-in-out infinite;
+        }
+        
+        @keyframes crowdWave {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-5px); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div id="app" class="container mx-auto px-4 py-8 max-w-4xl">
+        <!-- Header -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h1 class="text-3xl font-bold text-blue-600 mb-2">New Concept English - Lesson 13</h1>
+            <h2 class="text-xl text-gray-700 mb-4">The Greenwood Boys</h2>
+            <p class="text-gray-600">🎵 Let's learn about the famous pop singers and their upcoming visit!</p>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="bg-white rounded-lg shadow-md mb-6">
+            <div class="flex border-b">
+                <button 
+                    v-for="tab in tabs" 
+                    :key="tab.id"
+                    @click="activeTab = tab.id"
+                    :class="['px-6 py-3 font-medium', activeTab === tab.id ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500 hover:text-gray-700']"
+                    v-text="tab.name"
+                >
+                </button>
+            </div>
+        </div>
+
+        <!-- Original Text Tab -->
+        <div v-show="activeTab === 'original'" class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h3 class="text-xl font-semibold mb-4">📖 Original Text</h3>
+            <div class="bg-gray-100 p-4 rounded-lg mb-4">
+                <p class="font-medium text-blue-600 mb-2">Question: Why will the police have a difficult time?</p>
+            </div>
+            
+            <!-- Audio Controls -->
+            <div class="mb-6 p-4 bg-blue-50 rounded-lg">
+                <h4 class="font-semibold mb-3">🔊 Listen to the Story</h4>
+                <div class="flex gap-3 mb-3">
+                    <button @click="playAudio" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 flex items-center gap-2">
+                        <span v-if="!isPlaying">▶️ Play Audio</span>
+                        <span v-else>⏸️ Pause Audio</span>
+                    </button>
+                    <button @click="stopAudio" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
+                        ⏹️ Stop
+                    </button>
+                </div>
+                <div class="flex items-center gap-3">
+                    <label class="text-sm font-medium">Speed:</label>
+                    <select v-model="speechRate" @change="updateSpeechRate" class="border rounded px-2 py-1">
+                        <option value="0.5">0.5x</option>
+                        <option value="0.75">0.75x</option>
+                        <option value="1">1x (Normal)</option>
+                        <option value="1.25">1.25x</option>
+                        <option value="1.5">1.5x</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div id="story-text" class="space-y-2 text-lg leading-relaxed">
+                <p>The Greenwood Boys are a group of pop singers.</p>
+                <p>At present, they will be visiting all parts of the country.</p>
+                <p>They will be arriving here tomorrow.</p>
+                <p>They will be coming by train, most young people will be meeting them at the station.</p>
+                <p>Tomorrow evening, they will be singing at Worker's Club.</p>
+                <p>The Greenwood Boys will be staying for five days.</p>
+                <p>During this time, they will give five performances.</p>
+                <p class="highlight">As usual, the police will have a difficult time.</p>
+                <p>They will be trying to keep order.</p>
+                <p>It is always the same on these occasions.</p>
+            </div>
+        </div>
+
+        <!-- Vocabulary Tab -->
+        <div v-show="activeTab === 'vocabulary'" class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h3 class="text-xl font-semibold mb-4">📚 Key Vocabulary & Phrases</h3>
+            
+            <div class="grid md:grid-cols-2 gap-4">
+                <div v-for="word in vocabulary" :key="word.term" class="border rounded-lg p-4">
+                    <h4 class="font-semibold text-blue-600 mb-2" v-text="word.term"></h4>
+                    <p class="text-sm text-gray-600 mb-1"><strong>Type:</strong> <span v-text="word.type"></span></p>
+                    <p class="text-sm text-gray-600 mb-2"><strong>Meaning:</strong> <span v-text="word.meaning"></span></p>
+                    <p class="text-sm text-green-600 mb-2"><strong>Example:</strong> <span v-text="word.example"></span></p>
+                    <button @click="speakWord(word.term)" class="bg-blue-100 text-blue-600 px-3 py-1 rounded text-sm hover:bg-blue-200">
+                        🔊 Pronounce
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Grammar Tab -->
+        <div v-show="activeTab === 'grammar'" class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h3 class="text-xl font-semibold mb-4">📝 Grammar Focus: Future Continuous Tense</h3>
+            
+            <div class="grammar-tip p-4 rounded-lg mb-6">
+                <h4 class="font-semibold mb-2">💡 Grammar Tip: Future Continuous (will be + -ing)</h4>
+                <p class="mb-2">The future continuous tense describes actions that will be in progress at a specific time in the future.</p>
+                <p class="font-medium">Structure: Subject + will be + verb(-ing)</p>
+            </div>
+            
+            <div class="space-y-6">
+                <div class="bg-green-50 p-4 rounded-lg">
+                    <h4 class="font-semibold text-green-700 mb-3">✅ Examples from the Text:</h4>
+                    <ul class="space-y-2">
+                        <li v-for="example in grammarExamples" :key="example.id" class="flex items-start gap-2">
+                            <span class="text-green-600 mt-1">•</span>
+                            <div>
+                                <p class="font-medium" v-text="example.sentence"></p>
+                                <p class="text-sm text-gray-600" v-text="example.explanation"></p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                
+                <!-- Grammar Practice -->
+                <div class="bg-yellow-50 p-4 rounded-lg">
+                    <h4 class="font-semibold text-yellow-700 mb-3">🎯 Practice: Complete the sentences</h4>
+                    <div class="space-y-3">
+                        <div v-for="(exercise, index) in grammarExercises" :key="index" class="border-l-4 border-yellow-400 pl-4">
+                            <p class="mb-2" v-text="exercise.question"></p>
+                            <div class="flex gap-2 flex-wrap">
+                                <button 
+                                    v-for="option in exercise.options" 
+                                    :key="option"
+                                    @click="checkGrammarAnswer(index, option)"
+                                    :class="['px-3 py-1 rounded text-sm', 
+                                            exercise.selected === option ? 
+                                                (exercise.selected === exercise.correct ? 'bg-green-500 text-white' : 'bg-red-500 text-white') : 
+                                                'bg-gray-200 hover:bg-gray-300']"
+                                    v-text="option"
+                                >
+                                </button>
+                            </div>
+                            <p v-if="exercise.selected" :class="exercise.selected === exercise.correct ? 'correct-text' : 'error-text'" class="text-sm mt-2">
+                                <span v-if="exercise.selected === exercise.correct">✅ Correct!</span>
+                                <span v-else>❌ Try again. The correct answer is: <span v-text="exercise.correct"></span></span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Flashcards Tab -->
+        <div v-show="activeTab === 'flashcards'" class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h3 class="text-xl font-semibold mb-4">🎴 Interactive Flashcards</h3>
+            
+            <div class="mb-4 flex justify-between items-center">
+                <p class="text-gray-600">Card <span v-text="currentCardIndex + 1"></span> of <span v-text="vocabulary.length"></span></p>
+                <div class="flex gap-2">
+                    <button @click="previousCard" :disabled="currentCardIndex === 0" class="bg-gray-500 text-white px-3 py-1 rounded disabled:opacity-50">
+                        ← Previous
+                    </button>
+                    <button @click="nextCard" :disabled="currentCardIndex === vocabulary.length - 1" class="bg-blue-500 text-white px-3 py-1 rounded disabled:opacity-50">
+                        Next →
+                    </button>
+                </div>
+            </div>
+            
+            <div class="flashcard-container mb-4">
+                <div :class="['flashcard bg-gradient-to-br from-purple-400 to-pink-400 rounded-lg shadow-lg cursor-pointer', isFlipped ? 'flipped' : '']" @click="flipCard">
+                    <div class="flashcard-front bg-purple-500 text-white rounded-lg">
+                        <div class="text-center p-6">
+                            <h4 class="text-2xl font-bold mb-2" v-text="currentCard.term"></h4>
+                            <p class="text-purple-100">Click to see meaning</p>
+                        </div>
+                    </div>
+                    <div class="flashcard-back bg-pink-500 text-white rounded-lg">
+                        <div class="text-center p-6">
+                            <p class="text-lg mb-2" v-text="currentCard.meaning"></p>
+                            <p class="text-pink-100 text-sm" v-text="currentCard.example"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="text-center">
+                <button @click="speakWord(currentCard.term)" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+                    🔊 Pronounce Word
+                </button>
+            </div>
+        </div>
+
+        <!-- Memory Palace Tab -->
+        <div v-show="activeTab === 'memory'" class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h3 class="text-xl font-semibold mb-4">🏛️ Memory Palace: Concert Venue</h3>
+            <p class="text-gray-600 mb-6">Imagine walking through a concert venue where The Greenwood Boys will perform. Click on each location to learn vocabulary!</p>
+            
+            <div class="relative bg-gradient-to-b from-purple-200 to-purple-400 rounded-lg p-8 min-h-96">
+                <!-- Stage -->
+                <div class="absolute top-4 left-1/2 transform -translate-x-1/2 stage-lights">
+                    <div @click="showMemoryItem('stage')" class="memory-location bg-yellow-400 p-4 rounded-lg cursor-pointer text-center">
+                        <div class="text-2xl mb-1">🎤</div>
+                        <div class="text-sm font-semibold">Stage</div>
+                    </div>
+                </div>
+                
+                <!-- Audience Area -->
+                <div class="absolute bottom-8 left-8">
+                    <div @click="showMemoryItem('audience')" class="memory-location bg-blue-400 p-4 rounded-lg cursor-pointer text-center crowd-animation">
+                        <div class="text-2xl mb-1">👥</div>
+                        <div class="text-sm font-semibold">Audience</div>
+                    </div>
+                </div>
+                
+                <!-- Train Station -->
+                <div class="absolute top-1/2 right-8">
+                    <div @click="showMemoryItem('station')" class="memory-location bg-green-400 p-4 rounded-lg cursor-pointer text-center">
+                        <div class="text-2xl mb-1">🚂</div>
+                        <div class="text-sm font-semibold">Station</div>
+                    </div>
+                </div>
+                
+                <!-- Police Area -->
+                <div class="absolute bottom-8 right-8">
+                    <div @click="showMemoryItem('police')" class="memory-location bg-red-400 p-4 rounded-lg cursor-pointer text-center">
+                        <div class="text-2xl mb-1">👮</div>
+                        <div class="text-sm font-semibold">Police</div>
+                    </div>
+                </div>
+                
+                <!-- Worker's Club -->
+                <div class="absolute top-1/2 left-8">
+                    <div @click="showMemoryItem('club')" class="memory-location bg-orange-400 p-4 rounded-lg cursor-pointer text-center">
+                        <div class="text-2xl mb-1">🏢</div>
+                        <div class="text-sm font-semibold">Worker's Club</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Memory Item Details -->
+            <div v-if="selectedMemoryItem" class="mt-6 p-4 bg-blue-50 rounded-lg">
+                <h4 class="font-semibold text-blue-700 mb-2" v-text="selectedMemoryItem.title"></h4>
+                <p class="text-gray-700 mb-2" v-text="selectedMemoryItem.description"></p>
+                <p class="text-sm text-blue-600"><strong>Key Vocabulary:</strong> <span v-text="selectedMemoryItem.vocabulary"></span></p>
+            </div>
+        </div>
+
+        <!-- Exercises Tab -->
+        <div v-show="activeTab === 'exercises'" class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h3 class="text-xl font-semibold mb-4">✏️ Practice Exercises</h3>
+            
+            <!-- Exercise 1: Fill in the blanks -->
+            <div class="mb-8">
+                <h4 class="font-semibold text-green-600 mb-3">Exercise 1: Fill in the blanks with future continuous tense</h4>
+                <div class="space-y-4">
+                    <div v-for="(exercise, index) in fillBlankExercises" :key="index" class="border-l-4 border-green-400 pl-4">
+                        <p class="mb-2">
+                            <span v-text="exercise.before"></span>
+                            <input 
+                                v-model="exercise.userAnswer" 
+                                @input="checkFillBlank(index)"
+                                class="mx-2 px-2 py-1 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                :class="exercise.checked ? (exercise.isCorrect ? 'border-green-500' : 'border-red-500') : 'border-gray-300'"
+                                placeholder="Type here..."
+                            >
+                            <span v-text="exercise.after"></span>
+                        </p>
+                        <p v-if="exercise.checked" :class="exercise.isCorrect ? 'correct-text' : 'error-text'" class="text-sm">
+                            <span v-if="exercise.isCorrect">✅ Correct!</span>
+                            <span v-else>❌ Correct answer: <span v-text="exercise.correct"></span></span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Exercise 2: Multiple Choice -->
+            <div class="mb-8">
+                <h4 class="font-semibold text-blue-600 mb-3">Exercise 2: Choose the correct answer</h4>
+                <div class="space-y-4">
+                    <div v-for="(question, index) in multipleChoiceQuestions" :key="index" class="border-l-4 border-blue-400 pl-4">
+                        <p class="mb-3 font-medium" v-text="question.question"></p>
+                        <div class="space-y-2">
+                            <label v-for="option in question.options" :key="option" class="flex items-center gap-2 cursor-pointer">
+                                <input 
+                                    type="radio" 
+                                    :name="'question-' + index" 
+                                    :value="option" 
+                                    v-model="question.selected"
+                                    @change="checkMultipleChoice(index)"
+                                    class="text-blue-600"
+                                >
+                                <span v-text="option"></span>
+                            </label>
+                        </div>
+                        <p v-if="question.checked" :class="question.isCorrect ? 'correct-text' : 'error-text'" class="text-sm mt-2">
+                            <span v-if="question.isCorrect">✅ Correct!</span>
+                            <span v-else>❌ Correct answer: <span v-text="question.correct"></span></span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pronunciation Tab -->
+        <div v-show="activeTab === 'pronunciation'" class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h3 class="text-xl font-semibold mb-4">🗣️ Pronunciation Practice</h3>
+            
+            <div class="space-y-6">
+                <div v-for="phrase in pronunciationPhrases" :key="phrase.id" class="border rounded-lg p-4">
+                    <div class="flex justify-between items-center mb-3">
+                        <h4 class="font-semibold text-purple-600" v-text="phrase.text"></h4>
+                        <button @click="speakPhrase(phrase.text)" class="bg-purple-500 text-white px-3 py-1 rounded hover:bg-purple-600">
+                            🔊 Listen
+                        </button>
+                    </div>
+                    <p class="text-sm text-gray-600 mb-2" v-text="phrase.phonetic"></p>
+                    <p class="text-sm text-blue-600" v-text="phrase.tip"></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Progress Tracking -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-xl font-semibold mb-4">📊 Learning Progress</h3>
+            
+            <div class="space-y-4">
+                <div>
+                    <div class="flex justify-between mb-2">
+                        <span class="text-sm font-medium">Vocabulary Mastery</span>
+                        <span class="text-sm text-gray-600" v-text="vocabularyProgress + '%'"></span>
+                    </div>
+                    <div class="bg-gray-200 rounded-full h-2">
+                        <div class="progress-bar bg-blue-500 h-2 rounded-full" :style="{ width: vocabularyProgress + '%' }"></div>
+                    </div>
+                </div>
+                
+                <div>
+                    <div class="flex justify-between mb-2">
+                        <span class="text-sm font-medium">Grammar Understanding</span>
+                        <span class="text-sm text-gray-600" v-text="grammarProgress + '%'"></span>
+                    </div>
+                    <div class="bg-gray-200 rounded-full h-2">
+                        <div class="progress-bar bg-green-500 h-2 rounded-full" :style="{ width: grammarProgress + '%' }"></div>
+                    </div>
+                </div>
+                
+                <div>
+                    <div class="flex justify-between mb-2">
+                        <span class="text-sm font-medium">Exercise Completion</span>
+                        <span class="text-sm text-gray-600" v-text="exerciseProgress + '%'"></span>
+                    </div>
+                    <div class="bg-gray-200 rounded-full h-2">
+                        <div class="progress-bar bg-purple-500 h-2 rounded-full" :style="{ width: exerciseProgress + '%' }"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-6 text-center">
+                <p class="text-lg font-semibold text-gray-700">Overall Progress: <span class="text-blue-600" v-text="overallProgress + '%'"></span></p>
+                <div class="mt-2">
+                    <span v-if="overallProgress === 100" class="text-green-600 font-bold">🎉 Lesson Complete!</span>
+                    <span v-else-if="overallProgress >= 75" class="text-blue-600 font-bold">🌟 Almost there!</span>
+                    <span v-else-if="overallProgress >= 50" class="text-yellow-600 font-bold">📚 Good progress!</span>
+                    <span v-else class="text-gray-600">📖 Keep learning!</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+        
+        createApp({
+            data() {
+                return {
+                    activeTab: 'original',
+                    isPlaying: false,
+                    speechRate: 1,
+                    currentCardIndex: 0,
+                    isFlipped: false,
+                    selectedMemoryItem: null,
+                    
+                    tabs: [
+                        { id: 'original', name: 'Original Text' },
+                        { id: 'vocabulary', name: 'Vocabulary' },
+                        { id: 'grammar', name: 'Grammar' },
+                        { id: 'flashcards', name: 'Flashcards' },
+                        { id: 'memory', name: 'Memory Palace' },
+                        { id: 'exercises', name: 'Exercises' }
+                    ],
+                    
+                    vocabulary: [
+                        {
+                            term: 'group',
+                            type: 'noun',
+                            meaning: 'a number of people or things together',
+                            example: 'The Greenwood Boys are a group of pop singers.'
+                        },
+                        {
+                            term: 'pop singers',
+                            type: 'noun phrase',
+                            meaning: 'musicians who perform popular music',
+                            example: 'Pop singers are very popular among young people.'
+                        },
+                        {
+                            term: 'at present',
+                            type: 'adverb phrase',
+                            meaning: 'now, currently',
+                            example: 'At present, they will be visiting all parts of the country.'
+                        },
+                        {
+                            term: 'visit',
+                            type: 'verb',
+                            meaning: 'to go and see someone or somewhere',
+                            example: 'They will be visiting all parts of the country.'
+                        },
+                        {
+                            term: 'arrive',
+                            type: 'verb',
+                            meaning: 'to reach a place',
+                            example: 'They will be arriving here tomorrow.'
+                        },
+                        {
+                            term: 'station',
+                            type: 'noun',
+                            meaning: 'a place where trains stop',
+                            example: 'Most young people will be meeting them at the station.'
+                        },
+                        {
+                            term: 'performance',
+                            type: 'noun',
+                            meaning: 'a show or entertainment',
+                            example: 'They will give five performances.'
+                        },
+                        {
+                            term: 'keep order',
+                            type: 'verb phrase',
+                            meaning: 'to maintain control and prevent chaos',
+                            example: 'The police will be trying to keep order.'
+                        },
+                        {
+                            term: 'occasion',
+                            type: 'noun',
+                            meaning: 'a particular event or time',
+                            example: 'It is always the same on these occasions.'
+                        },
+                        {
+                            term: 'as usual',
+                            type: 'adverb phrase',
+                            meaning: 'as normally happens',
+                            example: 'As usual, the police will have a difficult time.'
+                        }
+                    ],
+                    
+                    grammarExamples: [
+                        {
+                            id: 1,
+                            sentence: 'They will be visiting all parts of the country.',
+                            explanation: 'Future continuous - ongoing action in the future'
+                        },
+                        {
+                            id: 2,
+                            sentence: 'They will be arriving here tomorrow.',
+                            explanation: 'Future continuous - planned future action'
+                        },
+                        {
+                            id: 3,
+                            sentence: 'They will be coming by train.',
+                            explanation: 'Future continuous - method of future action'
+                        },
+                        {
+                            id: 4,
+                            sentence: 'They will be singing at Worker\'s Club.',
+                            explanation: 'Future continuous - scheduled future activity'
+                        },
+                        {
+                            id: 5,
+                            sentence: 'They will be trying to keep order.',
+                            explanation: 'Future continuous - ongoing effort in the future'
+                        }
+                    ],
+                    
+                    grammarExercises: [
+                        {
+                            question: 'Tomorrow, the singers _____ at the station.',
+                            options: ['will arrive', 'will be arriving', 'are arriving'],
+                            correct: 'will be arriving',
+                            selected: null
+                        },
+                        {
+                            question: 'The police _____ to control the crowd.',
+                            options: ['will try', 'will be trying', 'are trying'],
+                            correct: 'will be trying',
+                            selected: null
+                        },
+                        {
+                            question: 'The Greenwood Boys _____ for five days.',
+                            options: ['will stay', 'will be staying', 'are staying'],
+                            correct: 'will be staying',
+                            selected: null
+                        },
+                        {
+                            question: 'Young people _____ them at the station.',
+                            options: ['will meet', 'will be meeting', 'are meeting'],
+                            correct: 'will be meeting',
+                            selected: null
+                        }
+                    ],
+                    
+                    fillBlankExercises: [
+                        {
+                            before: 'The Greenwood Boys',
+                            after: 'here tomorrow. (arrive)',
+                            correct: 'will be arriving',
+                            userAnswer: '',
+                            checked: false,
+                            isCorrect: false
+                        },
+                        {
+                            before: 'They',
+                            after: 'by train. (come)',
+                            correct: 'will be coming',
+                            userAnswer: '',
+                            checked: false,
+                            isCorrect: false
+                        },
+                        {
+                            before: 'Tomorrow evening, they',
+                            after: 'at Worker\'s Club. (sing)',
+                            correct: 'will be singing',
+                            userAnswer: '',
+                            checked: false,
+                            isCorrect: false
+                        },
+                        {
+                            before: 'The police',
+                            after: 'to keep order. (try)',
+                            correct: 'will be trying',
+                            userAnswer: '',
+                            checked: false,
+                            isCorrect: false
+                        }
+                    ],
+                    
+                    multipleChoiceQuestions: [
+                        {
+                            question: 'What are The Greenwood Boys?',
+                            options: ['A football team', 'A group of pop singers', 'A dance group', 'A theater company'],
+                            correct: 'A group of pop singers',
+                            selected: null,
+                            checked: false,
+                            isCorrect: false
+                        },
+                        {
+                            question: 'How will they travel?',
+                            options: ['By car', 'By plane', 'By train', 'By bus'],
+                            correct: 'By train',
+                            selected: null,
+                            checked: false,
+                            isCorrect: false
+                        },
+                        {
+                            question: 'Where will they perform tomorrow evening?',
+                            options: ['At the station', 'At Worker\'s Club', 'At the hotel', 'At the park'],
+                            correct: 'At Worker\'s Club',
+                            selected: null,
+                            checked: false,
+                            isCorrect: false
+                        },
+                        {
+                            question: 'Why will the police have a difficult time?',
+                            options: ['The singers are criminals', 'They need to keep order with excited fans', 'The train is late', 'The club is closed'],
+                            correct: 'They need to keep order with excited fans',
+                            selected: null,
+                            checked: false,
+                            isCorrect: false
+                        }
+                    ],
+                    
+                    pronunciationPhrases: [
+                        {
+                            id: 1,
+                            text: 'The Greenwood Boys',
+                            phonetic: '/ðə ˈɡriːnwʊd bɔɪz/',
+                            tip: 'Stress on "Green" and "Boys"'
+                        },
+                        {
+                            id: 2,
+                            text: 'pop singers',
+                            phonetic: '/pɒp ˈsɪŋəz/',
+                            tip: 'Short "o" sound in "pop"'
+                        },
+                        {
+                            id: 3,
+                            text: 'at present',
+                            phonetic: '/æt ˈpreznt/',
+                            tip: 'Stress on "present"'
+                        },
+                        {
+                            id: 4,
+                            text: 'performance',
+                            phonetic: '/pəˈfɔːməns/',
+                            tip: 'Stress on the second syllable'
+                        },
+                        {
+                            id: 5,
+                            text: 'keep order',
+                            phonetic: '/kiːp ˈɔːdə/',
+                            tip: 'Long "ee" sound in "keep"'
+                        }
+                    ],
+                    
+                    memoryPalace: {
+                        stage: {
+                            title: 'Concert Stage',
+                            description: 'This is where The Greenwood Boys will be singing tomorrow evening.',
+                            vocabulary: 'performance, singing, stage'
+                        },
+                        audience: {
+                            title: 'Excited Audience',
+                            description: 'Young people who love pop music will be gathering here.',
+                            vocabulary: 'young people, fans, crowd'
+                        },
+                        station: {
+                            title: 'Train Station',
+                            description: 'The place where The Greenwood Boys will be arriving by train.',
+                            vocabulary: 'arrive, train, station, meeting'
+                        },
+                        police: {
+                            title: 'Police Officers',
+                            description: 'They will be trying to keep order during the visit.',
+                            vocabulary: 'police, keep order, difficult time'
+                        },
+                        club: {
+                            title: 'Worker\'s Club',
+                            description: 'The venue where the performance will take place.',
+                            vocabulary: 'Worker\'s Club, evening, performance'
+                        }
+                    }
+                }
+            },
+            
+            computed: {
+                currentCard() {
+                    return this.vocabulary[this.currentCardIndex] || {};
+                },
+                
+                vocabularyProgress() {
+                    // Calculate based on pronunciation practice
+                    return Math.round((this.currentCardIndex + 1) / this.vocabulary.length * 100);
+                },
+                
+                grammarProgress() {
+                    const completed = this.grammarExercises.filter(ex => ex.selected === ex.correct).length;
+                    return Math.round(completed / this.grammarExercises.length * 100);
+                },
+                
+                exerciseProgress() {
+                    const fillBlanksCompleted = this.fillBlankExercises.filter(ex => ex.isCorrect).length;
+                    const multipleChoiceCompleted = this.multipleChoiceQuestions.filter(q => q.isCorrect).length;
+                    const total = this.fillBlankExercises.length + this.multipleChoiceQuestions.length;
+                    return Math.round((fillBlanksCompleted + multipleChoiceCompleted) / total * 100);
+                },
+                
+                overallProgress() {
+                    return Math.round((this.vocabularyProgress + this.grammarProgress + this.exerciseProgress) / 3);
+                }
+            },
+            
+            mounted() {
+                console.log('Lesson 13 Learning Guide loaded successfully');
+            },
+            
+            methods: {
+                // Audio Methods
+                playAudio() {
+                    if ('speechSynthesis' in window) {
+                        if (this.isPlaying) {
+                            speechSynthesis.pause();
+                            this.isPlaying = false;
+                        } else {
+                            const text = document.getElementById('story-text').innerText;
+                            const utterance = new SpeechSynthesisUtterance(text);
+                            utterance.rate = this.speechRate;
+                            utterance.onend = () => { this.isPlaying = false; };
+                            speechSynthesis.speak(utterance);
+                            this.isPlaying = true;
+                        }
+                    } else {
+                        alert('Speech synthesis not supported in your browser');
+                    }
+                },
+                
+                stopAudio() {
+                    speechSynthesis.cancel();
+                    this.isPlaying = false;
+                },
+                
+                updateSpeechRate() {
+                    if (this.isPlaying) {
+                        this.stopAudio();
+                        setTimeout(() => this.playAudio(), 100);
+                    }
+                },
+                
+                speakWord(word) {
+                    if ('speechSynthesis' in window) {
+                        const utterance = new SpeechSynthesisUtterance(word);
+                        utterance.rate = 0.8;
+                        speechSynthesis.speak(utterance);
+                    }
+                },
+                
+                speakPhrase(phrase) {
+                    if ('speechSynthesis' in window) {
+                        const utterance = new SpeechSynthesisUtterance(phrase);
+                        utterance.rate = 0.7;
+                        speechSynthesis.speak(utterance);
+                    }
+                },
+                
+                // Flashcard Methods
+                nextCard() {
+                    if (this.currentCardIndex < this.vocabulary.length - 1) {
+                        this.currentCardIndex++;
+                        this.isFlipped = false;
+                    }
+                },
+                
+                previousCard() {
+                    if (this.currentCardIndex > 0) {
+                        this.currentCardIndex--;
+                        this.isFlipped = false;
+                    }
+                },
+                
+                flipCard() {
+                    this.isFlipped = !this.isFlipped;
+                },
+                
+                // Memory Palace Methods
+                showMemoryItem(location) {
+                    this.selectedMemoryItem = this.memoryPalace[location];
+                },
+                
+                // Exercise Methods
+                checkGrammarAnswer(index, selectedOption) {
+                    this.grammarExercises[index].selected = selectedOption;
+                },
+                
+                checkFillBlank(index) {
+                    const exercise = this.fillBlankExercises[index];
+                    exercise.checked = true;
+                    exercise.isCorrect = exercise.userAnswer.toLowerCase().trim() === exercise.correct.toLowerCase();
+                },
+                
+                checkMultipleChoice(index) {
+                    const question = this.multipleChoiceQuestions[index];
+                    question.checked = true;
+                    question.isCorrect = question.selected === question.correct;
+                }
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
