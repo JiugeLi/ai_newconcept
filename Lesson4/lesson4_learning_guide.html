@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Concept English - Lesson 4: An Exciting Trip</title>
+    <link href="https://cdn.bootcdn.net/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.bootcdn.net/ajax/libs/vue/3.3.4/vue.global.min.js"></script>
+    <style>
+        .error-text { color: #ef4444; }
+        .correct-text { color: #10b981; }
+        .highlight { background-color: #fef3c7; }
+        .grammar-tip { background-color: #dbeafe; border-left: 4px solid #3b82f6; }
+        
+        /* Flashcard Animation Styles */
+        .flashcard-container {
+            perspective: 1000px;
+        }
+        
+        .flashcard {
+            position: relative;
+            width: 100%;
+            height: 200px;
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+        }
+        
+        .flashcard.flipped {
+            transform: rotateY(180deg);
+        }
+        
+        .flashcard-front,
+        .flashcard-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .flashcard-back {
+            transform: rotateY(180deg);
+        }
+        
+        /* Memory Palace Styles */
+        .memory-location {
+            transition: all 0.3s ease;
+        }
+        
+        .memory-location:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Progress Bar Animation */
+        .progress-bar {
+            transition: width 0.8s ease-in-out;
+        }
+        
+        /* Pronunciation Practice Styles */
+        .recording-pulse {
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        /* Australia Map Animation */
+        .australia-map {
+            background: linear-gradient(135deg, #ff9a56 0%, #ff6b6b 50%, #4ecdc4 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .travel-route {
+            animation: travelPath 3s ease-in-out infinite;
+        }
+        
+        @keyframes travelPath {
+            0%, 100% { transform: translateX(0px) translateY(0px); }
+            50% { transform: translateX(10px) translateY(-5px); }
+        }
+        
+        .city-marker {
+            animation: cityPulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes cityPulse {
+            0%, 100% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.1); opacity: 1; }
+        }
+        
+        /* Engineering Theme */
+        .engineering-bg {
+            background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .gear-animation {
+            animation: rotate 4s linear infinite;
+        }
+        
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div id="app" class="container mx-auto px-4 py-8 max-w-4xl">
+        <!-- Header -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h1 class="text-3xl font-bold text-blue-600 mb-2">New Concept English - Lesson 4</h1>
+            <h2 class="text-xl text-gray-700 mb-4">An Exciting Trip</h2>
+            <p class="text-gray-600">🇦🇺 Let's learn about Tim's exciting adventure in Australia!</p>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="bg-white rounded-lg shadow-md mb-6">
+            <div class="flex border-b">
+                <button 
+                    v-for="tab in tabs" 
+                    :key="tab.id"
+                    @click="activeTab = tab.id"
+                    :class="['px-6 py-3 font-medium', activeTab === tab.id ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500 hover:text-gray-700']"
+                    v-text="tab.name"
+                >
+                </button>
+            </div>
+        </div>
+
+        <!-- Original Text Tab -->
+        <div v-show="activeTab === 'original'" class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h3 class="text-xl font-semibold mb-4">📖 Original Text</h3>
+            <div class="bg-gray-100 p-4 rounded-lg mb-4">
+                <p class="font-medium text-blue-600 mb-2">Question: What is Tim doing in Australia?</p>
+            </div>
+            
+            <!-- Audio Controls -->
+            <div class="mb-6 p-4 bg-blue-50 rounded-lg">
+                <h4 class="font-semibold mb-3">🔊 Listen to the Story</h4>
+                <div class="flex gap-3 mb-3">
+                    <button @click="playAudio" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 flex items-center gap-2">
+                        <span v-if="!isPlaying">▶️ Play Audio</span>
+                        <span v-else>⏸️ Pause Audio</span>
+                    </button>
+                    <button @click="stopAudio" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
+                        ⏹️ Stop
+                    </button>
+                </div>
+                <div class="flex items-center gap-3">
+                    <label class="text-sm font-medium">Speed:</label>
+                    <select v-model="speechRate" @change="updateSpeechRate" class="border rounded px-2 py-1">
+                        <option value="0.5">0.5x</option>
+                        <option value="0.75">0.75x</option>
+                        <option value="1">1x (Normal)</option>
+                        <option value="1.25">1.25x</option>
+                        <option value="1.5">1.5x</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div id="story-text" class="space-y-2 text-lg leading-relaxed">
+                <p>I have just received a letter from my brother, Tim.</p>
+                <p>He is in Australia.</p>
+                <p>He has been there for six months.</p>
+                <p>Tim is an engineer.</p>
+                <p>He is working for a big firm and has already visited a great number of different places in Australia.</p>
+                <p>He has just bought a new car in Australia and has gone to Alice Springs, a small town in the centre of Australia.</p>
+                <p>He will soon go to Darwin, from there he will fly to Perth.</p>
+                <p class="highlight">My brother has never been abroad before. So he will find this trip very exciting.</p>
+            </div>
+        </div>
+
+        <!-- Vocabulary Tab -->
+        <div v-show="activeTab === 'vocabulary'" class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h3 class="text-xl font-semibold mb-4">📚 Key Vocabulary & Phrases</h3>
+            
+            <div class="grid md:grid-cols-2 gap-4">
+                <div v-for="word in vocabulary" :key="word.term" class="border rounded-lg p-4">
+                    <h4 class="font-semibold text-blue-600 mb-2" v-text="word.term"></h4>
+                    <p class="text-sm text-gray-600 mb-1"><strong>Type:</strong> <span v-text="word.type"></span></p>
+                    <p class="text-sm text-gray-600 mb-2"><strong>Meaning:</strong> <span v-text="word.meaning"></span></p>
+                    <p class="text-sm text-green-600 mb-2"><strong>Example:</strong> <span v-text="word.example"></span></p>
+                    <button @click="speakWord(word.term)" class="bg-blue-100 text-blue-600 px-3 py-1 rounded text-sm hover:bg-blue-200">
+                        🔊 Pronounce
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Grammar Tab -->
+        <div v-show="activeTab === 'grammar'" class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h3 class="text-xl font-semibold mb-4">📝 Grammar Focus: Present Perfect Tense</h3>
+            
+            <div class="grammar-tip p-4 rounded-lg mb-6">
+                <h4 class="font-semibold mb-2">💡 Grammar Tip: Present Perfect (have/has + past participle)</h4>
+                <p class="mb-2">The present perfect tense connects past actions to the present moment.</p>
+                <p class="font-medium">Structure: Subject + have/has + past participle</p>
+                <p class="text-sm mt-2"><strong>Uses:</strong> Recent actions, experiences, actions with present results</p>
+            </div>
+            
+            <div class="space-y-6">
+                <div class="bg-green-50 p-4 rounded-lg">
+                    <h4 class="font-semibold text-green-700 mb-3">✅ Examples from the Text:</h4>
+                    <ul class="space-y-2">
+                        <li v-for="example in grammarExamples" :key="example.id" class="flex items-start gap-2">
+                            <span class="text-green-600 mt-1">•</span>
+                            <div>
+                                <p class="font-medium" v-text="example.sentence"></p>
+                                <p class="text-sm text-gray-600" v-text="example.explanation"></p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                
+                <!-- Grammar Practice -->
+                <div class="bg-yellow-50 p-4 rounded-lg">
+                    <h4 class="font-semibold text-yellow-700 mb-3">🎯 Practice: Choose the correct form</h4>
+                    <div class="space-y-3">
+                        <div v-for="(exercise, index) in grammarExercises" :key="index" class="border-l-4 border-yellow-400 pl-4">
+                            <p class="mb-2" v-text="exercise.question"></p>
+                            <div class="flex gap-2 flex-wrap">
+                                <button 
+                                    v-for="option in exercise.options" 
+                                    :key="option"
+                                    @click="checkGrammarAnswer(index, option)"
+                                    :class="['px-3 py-1 rounded text-sm', 
+                                            exercise.selected === option ? 
+                                                (exercise.selected === exercise.correct ? 'bg-green-500 text-white' : 'bg-red-500 text-white') : 
+                                                'bg-gray-200 hover:bg-gray-300']"
+                                    v-text="option"
+                                >
+                                </button>
+                            </div>
+                            <p v-if="exercise.selected" :class="exercise.selected === exercise.correct ? 'correct-text' : 'error-text'" class="text-sm mt-2">
+                                <span v-if="exercise.selected === exercise.correct">✅ Correct!</span>
+                                <span v-else>❌ Try again. The correct answer is: <span v-text="exercise.correct"></span></span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Flashcards Tab -->
+        <div v-show="activeTab === 'flashcards'" class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h3 class="text-xl font-semibold mb-4">🎴 Interactive Flashcards</h3>
+            
+            <div class="mb-4 flex justify-between items-center">
+                <p class="text-gray-600">Card <span v-text="currentCardIndex + 1"></span> of <span v-text="vocabulary.length"></span></p>
+                <div class="flex gap-2">
+                    <button @click="previousCard" :disabled="currentCardIndex === 0" class="bg-gray-500 text-white px-3 py-1 rounded disabled:opacity-50">
+                        ← Previous
+                    </button>
+                    <button @click="nextCard" :disabled="currentCardIndex === vocabulary.length - 1" class="bg-blue-500 text-white px-3 py-1 rounded disabled:opacity-50">
+                        Next →
+                    </button>
+                </div>
+            </div>
+            
+            <div class="flashcard-container mb-4">
+                <div :class="['flashcard bg-gradient-to-br from-orange-400 to-red-400 rounded-lg shadow-lg cursor-pointer', isFlipped ? 'flipped' : '']" @click="flipCard">
+                    <div class="flashcard-front bg-orange-500 text-white rounded-lg">
+                        <div class="text-center p-6">
+                            <h4 class="text-2xl font-bold mb-2" v-text="currentCard.term"></h4>
+                            <p class="text-orange-100">Click to see meaning</p>
+                        </div>
+                    </div>
+                    <div class="flashcard-back bg-red-500 text-white rounded-lg">
+                        <div class="text-center p-6">
+                            <p class="text-lg mb-2" v-text="currentCard.meaning"></p>
+                            <p class="text-red-100 text-sm" v-text="currentCard.example"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="text-center">
+                <button @click="speakWord(currentCard.term)" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+                    🔊 Pronounce Word
+                </button>
+            </div>
+        </div>
+
+        <!-- Memory Palace Tab -->
+        <div v-show="activeTab === 'memory'" class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h3 class="text-xl font-semibold mb-4">🗺️ Memory Palace: Tim's Australian Journey</h3>
+            <p class="text-gray-600 mb-6">Follow Tim's journey through Australia. Click on each location to learn vocabulary!</p>
+            
+            <div class="relative australia-map rounded-lg p-8 min-h-96">
+                <!-- Engineering Office -->
+                <div class="absolute top-4 left-8">
+                    <div @click="showMemoryItem('office')" class="memory-location bg-blue-400 p-4 rounded-lg cursor-pointer text-center">
+                        <div class="text-2xl mb-1 gear-animation">⚙️</div>
+                        <div class="text-sm font-semibold text-white">Engineering Firm</div>
+                    </div>
+                </div>
+                
+                <!-- Alice Springs -->
+                <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                    <div @click="showMemoryItem('alice')" class="memory-location bg-yellow-400 p-4 rounded-lg cursor-pointer text-center city-marker">
+                        <div class="text-2xl mb-1">🏜️</div>
+                        <div class="text-sm font-semibold">Alice Springs</div>
+                    </div>
+                </div>
+                
+                <!-- Darwin -->
+                <div class="absolute top-8 right-1/3">
+                    <div @click="showMemoryItem('darwin')" class="memory-location bg-green-400 p-4 rounded-lg cursor-pointer text-center city-marker">
+                        <div class="text-2xl mb-1">🌴</div>
+                        <div class="text-sm font-semibold text-white">Darwin</div>
+                    </div>
+                </div>
+                
+                <!-- Perth -->
+                <div class="absolute bottom-8 left-8">
+                    <div @click="showMemoryItem('perth')" class="memory-location bg-purple-400 p-4 rounded-lg cursor-pointer text-center city-marker">
+                        <div class="text-2xl mb-1">🏙️</div>
+                        <div class="text-sm font-semibold text-white">Perth</div>
+                    </div>
+                </div>
+                
+                <!-- Car -->
+                <div class="absolute bottom-1/3 right-8">
+                    <div @click="showMemoryItem('car')" class="memory-location bg-red-400 p-4 rounded-lg cursor-pointer text-center travel-route">
+                        <div class="text-2xl mb-1">🚗</div>
+                        <div class="text-sm font-semibold text-white">New Car</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Memory Item Details -->
+            <div v-if="selectedMemoryItem" class="mt-6 p-4 bg-blue-50 rounded-lg">
+                <h4 class="font-semibold text-blue-700 mb-2" v-text="selectedMemoryItem.title"></h4>
+                <p class="text-gray-700 mb-2" v-text="selectedMemoryItem.description"></p>
+                <p class="text-sm text-blue-600"><strong>Key Vocabulary:</strong> <span v-text="selectedMemoryItem.vocabulary"></span></p>
+            </div>
+        </div>
+
+        <!-- Exercises Tab -->
+        <div v-show="activeTab === 'exercises'" class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h3 class="text-xl font-semibold mb-4">✏️ Practice Exercises</h3>
+            
+            <!-- Exercise 1: Fill in the blanks -->
+            <div class="mb-8">
+                <h4 class="font-semibold text-green-600 mb-3">Exercise 1: Fill in the blanks with present perfect tense</h4>
+                <div class="space-y-4">
+                    <div v-for="(exercise, index) in fillBlankExercises" :key="index" class="border-l-4 border-green-400 pl-4">
+                        <p class="mb-2">
+                            <span v-text="exercise.before"></span>
+                            <input 
+                                v-model="exercise.userAnswer" 
+                                @input="checkFillBlank(index)"
+                                class="mx-2 px-2 py-1 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                :class="exercise.checked ? (exercise.isCorrect ? 'border-green-500' : 'border-red-500') : 'border-gray-300'"
+                                placeholder="Type here..."
+                            >
+                            <span v-text="exercise.after"></span>
+                        </p>
+                        <p v-if="exercise.checked" :class="exercise.isCorrect ? 'correct-text' : 'error-text'" class="text-sm">
+                            <span v-if="exercise.isCorrect">✅ Correct!</span>
+                            <span v-else>❌ Correct answer: <span v-text="exercise.correct"></span></span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Exercise 2: Multiple Choice -->
+            <div class="mb-8">
+                <h4 class="font-semibold text-blue-600 mb-3">Exercise 2: Choose the correct answer</h4>
+                <div class="space-y-4">
+                    <div v-for="(question, index) in multipleChoiceQuestions" :key="index" class="border-l-4 border-blue-400 pl-4">
+                        <p class="mb-3 font-medium" v-text="question.question"></p>
+                        <div class="space-y-2">
+                            <label v-for="option in question.options" :key="option" class="flex items-center gap-2 cursor-pointer">
+                                <input 
+                                    type="radio" 
+                                    :name="'question-' + index" 
+                                    :value="option" 
+                                    v-model="question.selected"
+                                    @change="checkMultipleChoice(index)"
+                                    class="text-blue-600"
+                                >
+                                <span v-text="option"></span>
+                            </label>
+                        </div>
+                        <p v-if="question.checked" :class="question.isCorrect ? 'correct-text' : 'error-text'" class="text-sm mt-2">
+                            <span v-if="question.isCorrect">✅ Correct!</span>
+                            <span v-else">❌ Correct answer: <span v-text="question.correct"></span></span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pronunciation Tab -->
+        <div v-show="activeTab === 'pronunciation'" class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h3 class="text-xl font-semibold mb-4">🗣️ Pronunciation Practice</h3>
+            
+            <div class="space-y-6">
+                <div v-for="phrase in pronunciationPhrases" :key="phrase.id" class="border rounded-lg p-4">
+                    <div class="flex justify-between items-center mb-3">
+                        <h4 class="font-semibold text-purple-600" v-text="phrase.text"></h4>
+                        <button @click="speakPhrase(phrase.text)" class="bg-purple-500 text-white px-3 py-1 rounded hover:bg-purple-600">
+                            🔊 Listen
+                        </button>
+                    </div>
+                    <p class="text-sm text-gray-600 mb-2" v-text="phrase.phonetic"></p>
+                    <p class="text-sm text-blue-600" v-text="phrase.tip"></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Progress Tracking -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-xl font-semibold mb-4">📊 Learning Progress</h3>
+            
+            <div class="space-y-4">
+                <div>
+                    <div class="flex justify-between mb-2">
+                        <span class="text-sm font-medium">Vocabulary Mastery</span>
+                        <span class="text-sm text-gray-600" v-text="vocabularyProgress + '%'"></span>
+                    </div>
+                    <div class="bg-gray-200 rounded-full h-2">
+                        <div class="progress-bar bg-blue-500 h-2 rounded-full" :style="{ width: vocabularyProgress + '%' }"></div>
+                    </div>
+                </div>
+                
+                <div>
+                    <div class="flex justify-between mb-2">
+                        <span class="text-sm font-medium">Grammar Understanding</span>
+                        <span class="text-sm text-gray-600" v-text="grammarProgress + '%'"></span>
+                    </div>
+                    <div class="bg-gray-200 rounded-full h-2">
+                        <div class="progress-bar bg-green-500 h-2 rounded-full" :style="{ width: grammarProgress + '%' }"></div>
+                    </div>
+                </div>
+                
+                <div>
+                    <div class="flex justify-between mb-2">
+                        <span class="text-sm font-medium">Exercise Completion</span>
+                        <span class="text-sm text-gray-600" v-text="exerciseProgress + '%'"></span>
+                    </div>
+                    <div class="bg-gray-200 rounded-full h-2">
+                        <div class="progress-bar bg-purple-500 h-2 rounded-full" :style="{ width: exerciseProgress + '%' }"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-6 text-center">
+                <p class="text-lg font-semibold text-gray-700">Overall Progress: <span class="text-blue-600" v-text="overallProgress + '%'"></span></p>
+                <div class="mt-2">
+                    <span v-if="overallProgress === 100" class="text-green-600 font-bold">🎉 Lesson Complete!</span>
+                    <span v-else-if="overallProgress >= 75" class="text-blue-600 font-bold">🌟 Almost there!</span>
+                    <span v-else-if="overallProgress >= 50" class="text-yellow-600 font-bold">📚 Good progress!</span>
+                    <span v-else class="text-gray-600">📖 Keep learning!</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+        
+        createApp({
+            data() {
+                return {
+                    activeTab: 'original',
+                    isPlaying: false,
+                    speechRate: 1,
+                    currentCardIndex: 0,
+                    isFlipped: false,
+                    selectedMemoryItem: null,
+                    
+                    tabs: [
+                        { id: 'original', name: 'Original Text' },
+                        { id: 'vocabulary', name: 'Vocabulary' },
+                        { id: 'grammar', name: 'Grammar' },
+                        { id: 'flashcards', name: 'Flashcards' },
+                        { id: 'memory', name: 'Memory Palace' },
+                        { id: 'exercises', name: 'Exercises' },
+                        { id: 'pronunciation', name: 'Pronunciation' }
+                    ],
+                    
+                    vocabulary: [
+                        {
+                            term: 'receive',
+                            type: 'verb',
+                            meaning: 'to get or be given something',
+                            example: 'I have just received a letter from my brother.'
+                        },
+                        {
+                            term: 'engineer',
+                            type: 'noun',
+                            meaning: 'a person who designs and builds machines, engines, or structures',
+                            example: 'Tim is an engineer working for a big firm.'
+                        },
+                        {
+                            term: 'firm',
+                            type: 'noun',
+                            meaning: 'a business company',
+                            example: 'He is working for a big firm in Australia.'
+                        },
+                        {
+                            term: 'abroad',
+                            type: 'adverb',
+                            meaning: 'in or to a foreign country',
+                            example: 'My brother has never been abroad before.'
+                        },
+                        {
+                            term: 'exciting',
+                            type: 'adjective',
+                            meaning: 'causing feelings of enthusiasm and eagerness',
+                            example: 'He will find this trip very exciting.'
+                        },
+                        {
+                            term: 'a great number of',
+                            type: 'phrase',
+                            meaning: 'many, a lot of',
+                            example: 'He has visited a great number of different places.'
+                        },
+                        {
+                            term: 'centre',
+                            type: 'noun',
+                            meaning: 'the middle point or part of something',
+                            example: 'Alice Springs is in the centre of Australia.'
+                        },
+                        {
+                            term: 'already',
+                            type: 'adverb',
+                            meaning: 'before now or before a particular time',
+                            example: 'He has already visited many places.'
+                        },
+                        {
+                            term: 'just',
+                            type: 'adverb',
+                            meaning: 'recently, a short time ago',
+                            example: 'He has just bought a new car.'
+                        },
+                        {
+                            term: 'never',
+                            type: 'adverb',
+                            meaning: 'not at any time',
+                            example: 'He has never been abroad before.'
+                        }
+                    ],
+                    
+                    grammarExamples: [
+                        {
+                            id: 1,
+                            sentence: 'I have just received a letter from my brother.',
+                            explanation: 'Recent action with present relevance - using "just"'
+                        },
+                        {
+                            id: 2,
+                            sentence: 'He has been there for six months.',
+                            explanation: 'Duration from past to present - using "for"'
+                        },
+                        {
+                            id: 3,
+                            sentence: 'He has already visited a great number of different places.',
+                            explanation: 'Completed action with present result - using "already"'
+                        },
+                        {
+                            id: 4,
+                            sentence: 'He has just bought a new car.',
+                            explanation: 'Recent action affecting the present - using "just"'
+                        },
+                        {
+                            id: 5,
+                            sentence: 'My brother has never been abroad before.',
+                            explanation: 'Life experience up to now - using "never"'
+                        }
+                    ],
+                    
+                    grammarExercises: [
+                        {
+                            question: 'Tim _____ in Australia for six months.',
+                            options: ['is', 'has been', 'was'],
+                            correct: 'has been',
+                            selected: null
+                        },
+                        {
+                            question: 'I _____ a letter from my brother yesterday.',
+                            options: ['have received', 'received', 'receive'],
+                            correct: 'received',
+                            selected: null
+                        },
+                        {
+                            question: 'He _____ many places in Australia.',
+                            options: ['has visited', 'visited', 'visits'],
+                            correct: 'has visited',
+                            selected: null
+                        },
+                        {
+                            question: 'My brother _____ abroad before.',
+                            options: ['has never been', 'never was', 'never is'],
+                            correct: 'has never been',
+                            selected: null
+                        }
+                    ],
+                    
+                    fillBlankExercises: [
+                        {
+                            before: 'I',
+                            after: 'a letter from Tim. (just/receive)',
+                            correct: 'have just received',
+                            userAnswer: '',
+                            checked: false,
+                            isCorrect: false
+                        },
+                        {
+                            before: 'He',
+                            after: 'there for six months. (be)',
+                            correct: 'has been',
+                            userAnswer: '',
+                            checked: false,
+                            isCorrect: false
+                        },
+                        {
+                            before: 'Tim',
+                            after: 'a new car. (just/buy)',
+                            correct: 'has just bought',
+                            userAnswer: '',
+                            checked: false,
+                            isCorrect: false
+                        },
+                        {
+                            before: 'He',
+                            after: 'abroad before. (never/be)',
+                            correct: 'has never been',
+                            userAnswer: '',
+                            checked: false,
+                            isCorrect: false
+                        }
+                    ],
+                    
+                    multipleChoiceQuestions: [
+                        {
+                            question: 'What is Tim\'s profession?',
+                            options: ['Doctor', 'Engineer', 'Teacher', 'Lawyer'],
+                            correct: 'Engineer',
+                            selected: null,
+                            checked: false,
+                            isCorrect: false
+                        },
+                        {
+                            question: 'How long has Tim been in Australia?',
+                            options: ['Three months', 'Six months', 'One year', 'Two years'],
+                            correct: 'Six months',
+                            selected: null,
+                            checked: false,
+                            isCorrect: false
+                        },
+                        {
+                            question: 'Where is Alice Springs located?',
+                            options: ['North of Australia', 'South of Australia', 'Centre of Australia', 'East of Australia'],
+                            correct: 'Centre of Australia',
+                            selected: null,
+                            checked: false,
+                            isCorrect: false
+                        },
+                        {
+                            question: 'Why will Tim find the trip exciting?',
+                            options: ['He loves cars', 'He has never been abroad before', 'He is an engineer', 'He likes hot weather'],
+                            correct: 'He has never been abroad before',
+                            selected: null,
+                            checked: false,
+                            isCorrect: false
+                        }
+                    ],
+                    
+                    pronunciationPhrases: [
+                        {
+                            id: 1,
+                            text: 'received',
+                            phonetic: '/rɪˈsiːvd/',
+                            tip: 'Stress on the second syllable'
+                        },
+                        {
+                            id: 2,
+                            text: 'engineer',
+                            phonetic: '/ˌendʒɪˈnɪə/',
+                            tip: 'Stress on the last syllable'
+                        },
+                        {
+                            id: 3,
+                            text: 'Australia',
+                            phonetic: '/ɒˈstreɪliə/',
+                            tip: 'Stress on the second syllable'
+                        },
+                        {
+                            id: 4,
+                            text: 'exciting',
+                            phonetic: '/ɪkˈsaɪtɪŋ/',
+                            tip: 'Stress on the second syllable'
+                        },
+                        {
+                            id: 5,
+                            text: 'abroad',
+                            phonetic: '/əˈbrɔːd/',
+                            tip: 'Stress on the second syllable, long "o" sound'
+                        }
+                    ],
+                    
+                    memoryPalace: {
+                        office: {
+                            title: 'Engineering Firm',
+                            description: 'Tim works as an engineer for a big firm in Australia.',
+                            vocabulary: 'engineer, firm, working'
+                        },
+                        alice: {
+                            title: 'Alice Springs',
+                            description: 'A small town in the centre of Australia where Tim has gone with his new car.',
+                            vocabulary: 'centre, small town, car'
+                        },
+                        darwin: {
+                            title: 'Darwin',
+                            description: 'The northern city where Tim will go next on his journey.',
+                            vocabulary: 'will go, soon, journey'
+                        },
+                        perth: {
+                            title: 'Perth',
+                            description: 'The western city where Tim will fly to from Darwin.',
+                            vocabulary: 'fly, destination, travel'
+                        },
+                        car: {
+                            title: 'New Car',
+                            description: 'Tim has just bought a new car in Australia for his travels.',
+                            vocabulary: 'just bought, new, travel'
+                        }
+                    }
+                }
+            },
+            
+            computed: {
+                currentCard() {
+                    return this.vocabulary[this.currentCardIndex] || {};
+                },
+                
+                vocabularyProgress() {
+                    return Math.round((this.currentCardIndex + 1) / this.vocabulary.length * 100);
+                },
+                
+                grammarProgress() {
+                    const completed = this.grammarExercises.filter(ex => ex.selected === ex.correct).length;
+                    return Math.round(completed / this.grammarExercises.length * 100);
+                },
+                
+                exerciseProgress() {
+                    const fillBlanksCompleted = this.fillBlankExercises.filter(ex => ex.isCorrect).length;
+                    const multipleChoiceCompleted = this.multipleChoiceQuestions.filter(q => q.isCorrect).length;
+                    const total = this.fillBlankExercises.length + this.multipleChoiceQuestions.length;
+                    return Math.round((fillBlanksCompleted + multipleChoiceCompleted) / total * 100);
+                },
+                
+                overallProgress() {
+                    return Math.round((this.vocabularyProgress + this.grammarProgress + this.exerciseProgress) / 3);
+                }
+            },
+            
+            mounted() {
+                console.log('Lesson 4 Learning Guide loaded successfully');
+            },
+            
+            methods: {
+                // Audio Methods
+                playAudio() {
+                    if ('speechSynthesis' in window) {
+                        if (this.isPlaying) {
+                            speechSynthesis.pause();
+                            this.isPlaying = false;
+                        } else {
+                            const text = document.getElementById('story-text').innerText;
+                            const utterance = new SpeechSynthesisUtterance(text);
+                            utterance.rate = this.speechRate;
+                            utterance.onend = () => { this.isPlaying = false; };
+                            speechSynthesis.speak(utterance);
+                            this.isPlaying = true;
+                        }
+                    } else {
+                        alert('Speech synthesis not supported in your browser');
+                    }
+                },
+                
+                stopAudio() {
+                    speechSynthesis.cancel();
+                    this.isPlaying = false;
+                },
+                
+                updateSpeechRate() {
+                    if (this.isPlaying) {
+                        this.stopAudio();
+                        setTimeout(() => this.playAudio(), 100);
+                    }
+                },
+                
+                speakWord(word) {
+                    if ('speechSynthesis' in window) {
+                        const utterance = new SpeechSynthesisUtterance(word);
+                        utterance.rate = 0.8;
+                        speechSynthesis.speak(utterance);
+                    }
+                },
+                
+                speakPhrase(phrase) {
+                    if ('speechSynthesis' in window) {
+                        const utterance = new SpeechSynthesisUtterance(phrase);
+                        utterance.rate = 0.7;
+                        speechSynthesis.speak(utterance);
+                    }
+                },
+                
+                // Flashcard Methods
+                nextCard() {
+                    if (this.currentCardIndex < this.vocabulary.length - 1) {
+                        this.currentCardIndex++;
+                        this.isFlipped = false;
+                    }
+                },
+                
+                previousCard() {
+                    if (this.currentCardIndex > 0) {
+                        this.currentCardIndex--;
+                        this.isFlipped = false;
+                    }
+                },
+                
+                flipCard() {
+                    this.isFlipped = !this.isFlipped;
+                },
+                
+                // Memory Palace Methods
+                showMemoryItem(location) {
+                    this.selectedMemoryItem = this.memoryPalace[location];
+                },
+                
+                // Exercise Methods
+                checkGrammarAnswer(index, selectedOption) {
+                    this.grammarExercises[index].selected = selectedOption;
+                },
+                
+                checkFillBlank(index) {
+                    const exercise = this.fillBlankExercises[index];
+                    exercise.checked = true;
+                    exercise.isCorrect = exercise.userAnswer.toLowerCase().trim() === exercise.correct.toLowerCase();
+                },
+                
+                checkMultipleChoice(index) {
+                    const question = this.multipleChoiceQuestions[index];
+                    question.checked = true;
+                    question.isCorrect = question.selected === question.correct;
+                }
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
